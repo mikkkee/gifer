@@ -87,7 +87,6 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.central_widget = QtGui.QWidget()
         mirror_check_box = QtGui.QCheckBox('Mirror gif')
 
-
         # Attach central_widget to main window.
         self.setCentralWidget(self.central_widget)
 
