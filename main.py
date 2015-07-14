@@ -2,8 +2,11 @@ __author__ = 'Jianfeng'
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui, QtCore, uic
+from PyQt4.phonon import Phonon
 from moviepy.editor import *
+
+from videoplayer import VideoPlayer
 
 
 class Info(object):
@@ -84,13 +87,23 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.setWindowTitle('GIFer')
 
         # Define central widget.
-        self.central_widget = QtGui.QWidget()
+        self.central_widget = MagicBoxCentralWidget()
         mirror_check_box = QtGui.QCheckBox('Mirror gif')
 
         # Attach central_widget to main window.
         self.setCentralWidget(self.central_widget)
 
         self.show()
+
+class MagicBoxCentralWidget(QtGui.QWidget):
+    """Central widget designed by QT Designer."""
+    def __init__(self):
+        super(MagicBoxCentralWidget, self).__init__()
+        uic.loadUi('MagicBox.ui', self)
+
+        media = Phonon.MediaSource('foam.mp4')
+        print self.player
+        self.player.load(media)
 
 
 def main(argv):
