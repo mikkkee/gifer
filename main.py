@@ -1,6 +1,8 @@
 __author__ = 'Jianfeng'
 
+import sys
 
+from PyQt4 import QtGui, QtCore
 from moviepy.editor import *
 
 
@@ -8,39 +10,102 @@ class Info(object):
     """Info object used to hold user inputs"""
 
     def __init__(self):
+        # Video name.
+        self.video = None
+        # Clip time.
         self.start = None
         self.end = None
-        self.top_left = ()
-        self.bottom_right = ()
+        # Clip size.
+        self.size = None
+        self.scale = None
+        # Mirror or not.
         self.mirrored = False
-        self.video = None
+        # Default GIF writing options.
+        self.fps = None
+        self.fuzz = 1
+
+    def update_video(self, name):
+        """Update the video to process."""
+        assert isinstance(name, str)
+        self.video = name
+
+    def update_time(self, start, end):
+        """Update clip starting/ending time."""
+        self.start, self.end = start, end
+
+    def update_size(self, width, height, scale=None):
+        """Update resize details of clip."""
+        if scale is not None:
+            self.scale = scale
+        else:
+            self.size = (width, height)
+
+    def update_details(self, fps=None, fuzz=1, mirrored=False):
+        """Add additional information."""
+        self.fps = fps
+        self.fuzz = fuzz
+        self.mirrored = mirrored
 
 
 class MagicBox(object):
-    """A magic box which can convert videos into gif pictures."""
+    """A magic box which can convert videos into GIF pictures."""
 
     def __init__(self):
-        self.video = None
         self.clip = None
         self._original_clip = None
         self.info = Info()
 
-    def add_video(self, video_name):
-        self.video = video_name
-        self.info.video = video_name
+    def make_clip(self):
+        """Customize clip according to details in self.info"""
+        # Init from video file.
+        self.clip = VideoFileClip(self.info.video)
+        # Create subclip.
+        self.clip = self.clip.subclip(self.info.start, self.info.end)
+        # Resize clip.
+        if self.info.scale:
+            self.clip = self.clip.resize(self.info.scale)
+        else:
+            self.clip = self.clip.resize(self.info.size)
 
-    def set_clip_time(self, start, end):
-        """Change starting, ending time of clip.
-        Update changes in info.
-        """
-        self.clip = self._original_clip.subclip(start, end)
-        self.info.start, self.info.end = start, end
+    def save_gif(self, name):
+        """Write VideoClip to a GIF file."""
+        self.clip.write_gif(name, fps=self.info.fps, fuzz=self.info.fuzz)
 
-    def set_clip_size(self, top_left, bottom_right):
-        """Change clip size.
-        By providing two lists/tuples indicating (x, y) coordinates
-        of top left and bottom right corners.
-        """
-        pass
+
+class MagicBoxGui(QtGui.QMainWindow):
+    """GUI for MagicBox."""
+
+    def __init__(self):
+        super(MagicBoxGui, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.statusBar().showMessage('Ready')
+        self.setWindowTitle('GIFer')
+
+        # Define central widget.
+        self.central_widget = QtGui.QWidget()
+        mirror_check_box = QtGui.QCheckBox('Mirror gif')
+
+
+        # Attach central_widget to main window.
+        self.setCentralWidget(self.central_widget)
+
+        self.show()
+
+
+def main(argv):
+    app = QtGui.QApplication(argv)
+    mb = MagicBoxGui()
+
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main(sys.argv)
+
+
+
+
 
 
