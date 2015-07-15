@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>643</width>
-    <height>492</height>
+    <width>681</width>
+    <height>527</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,12 +23,15 @@
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="VideoPlayer" name="player" native="true">
+      <widget class="QLabel" name="gif_player">
        <property name="minimumSize">
         <size>
-         <width>0</width>
+         <width>623</width>
          <height>285</height>
         </size>
+       </property>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>
@@ -58,28 +61,28 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="pause_btn">
          <property name="text">
           <string>Pause</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_4">
+        <widget class="QPushButton" name="prev_frame_btn">
          <property name="text">
           <string>Previous Frame</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QPushButton" name="next_frame_btn">
          <property name="text">
           <string>Next Frame</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_5">
+        <widget class="QPushButton" name="stop_btn">
          <property name="text">
           <string>Stop</string>
          </property>
@@ -98,7 +101,7 @@
       <number>15</number>
      </property>
      <item row="1" column="2">
-      <widget class="QLabel" name="label_10">
+      <widget class="QLabel" name="height_label">
        <property name="text">
         <string>Height (px)</string>
        </property>
@@ -108,7 +111,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="label_9">
+      <widget class="QLabel" name="width_label">
        <property name="text">
         <string>Width (px)</string>
        </property>
@@ -118,7 +121,7 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="label_8">
+      <widget class="QLabel" name="start_label">
        <property name="text">
         <string>Start Time(s)</string>
        </property>
@@ -128,20 +131,20 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="lineEdit_10"/>
+      <widget class="QLineEdit" name="width_input"/>
      </item>
      <item row="1" column="4">
-      <widget class="QCheckBox" name="checkBox_3">
+      <widget class="QCheckBox" name="scale_check">
        <property name="text">
         <string>Scale</string>
        </property>
       </widget>
      </item>
      <item row="1" column="5">
-      <widget class="QLineEdit" name="lineEdit_12"/>
+      <widget class="QLineEdit" name="scale_input"/>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="fps_label">
        <property name="text">
         <string>FPS</string>
        </property>
@@ -151,12 +154,12 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="fps_input"/>
      </item>
      <item row="2" column="2">
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="fuzz_label">
        <property name="text">
-        <string>TextLabel</string>
+        <string>Fuzz (%)</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -164,23 +167,23 @@
       </widget>
      </item>
      <item row="2" column="3">
-      <widget class="QLineEdit" name="lineEdit_2"/>
+      <widget class="QLineEdit" name="fuzz_input"/>
      </item>
      <item row="2" column="4" colspan="2">
-      <widget class="QCheckBox" name="checkBox">
+      <widget class="QCheckBox" name="mirror_check">
        <property name="text">
         <string>Mirror GIF</string>
        </property>
       </widget>
      </item>
      <item row="1" column="3">
-      <widget class="QLineEdit" name="lineEdit_11"/>
+      <widget class="QLineEdit" name="height_input"/>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEdit_8"/>
+      <widget class="QLineEdit" name="start_input"/>
      </item>
      <item row="0" column="2">
-      <widget class="QLabel" name="label_7">
+      <widget class="QLabel" name="end_label">
        <property name="text">
         <string>End Time (s)</string>
        </property>
@@ -190,7 +193,7 @@
       </widget>
      </item>
      <item row="0" column="3">
-      <widget class="QLineEdit" name="lineEdit_9"/>
+      <widget class="QLineEdit" name="end_input"/>
      </item>
     </layout>
    </item>
@@ -200,7 +203,7 @@
       <number>200</number>
      </property>
      <item>
-      <widget class="QPushButton" name="pushButton_7">
+      <widget class="QPushButton" name="reset_btn">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -310,7 +313,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_6">
+      <widget class="QPushButton" name="generate_btn">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -326,14 +329,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>VideoPlayer</class>
-   <extends>QWidget</extends>
-   <header>videoplayer.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
