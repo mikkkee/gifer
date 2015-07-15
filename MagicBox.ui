@@ -36,19 +36,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QSlider" name="horizontalSlider">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>19</height>
-        </size>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="sizeConstraint">
         <enum>QLayout::SetMaximumSize</enum>
@@ -64,13 +51,6 @@
         <widget class="QPushButton" name="pause_btn">
          <property name="text">
           <string>Pause</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="prev_frame_btn">
-         <property name="text">
-          <string>Previous Frame</string>
          </property>
         </widget>
        </item>

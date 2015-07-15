@@ -14,6 +14,7 @@ class Info(object):
         # Video name.
         self.video = None
         # Clip time.
+        self.original_duration = None
         self.start = None
         self.end = None
         # Clip size.
@@ -24,6 +25,7 @@ class Info(object):
         # Mirror or not.
         self.mirrored = False
         # Default GIF writing options.
+        self.original_fps = None
         self.fps = None
         self.fuzz = 1
 
@@ -123,12 +125,17 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.statusBar().showMessage('Ready')
         self.setWindowTitle('GIFer')
 
-        # Menu bar - open file and exit program.
-        open_file = QtGui.QAction('Open', self)
+        # Menu bar - open video
+        open_file = QtGui.QAction('Open Video', self)
         open_file.setShortcut('Ctrl+O')
-        open_file.setStatusTip('Open new File')
-        open_file.triggered.connect(self.show_open_file_dialog)
-
+        open_file.setStatusTip('Open New Video')
+        open_file.triggered.connect(self.show_open_video_dialog)
+        # Menu bar - open GIF
+        open_gif = QtGui.QAction('Open GIF', self)
+        open_gif.setShortcut('Ctrl+G')
+        open_gif.setStatusTip('Open New GIF Picture')
+        open_gif.triggered.connect(self.show_open_gif_dialog)
+        # Menu bar - exit program
         exit_action = QtGui.QAction('&Exit', self)
         exit_action.setShortcut('Ctrl+Q')
         exit_action.setStatusTip('Exit application')
@@ -137,6 +144,8 @@ class MagicBoxGui(QtGui.QMainWindow):
         menu = self.menuBar()
         file_menu = menu.addMenu('&File')
         file_menu.addAction(open_file)
+        file_menu.addAction(open_gif)
+        file_menu.addSeparator()
         file_menu.addAction(exit_action)
 
         ########### Setup central widget ##########
@@ -179,8 +188,12 @@ class MagicBoxGui(QtGui.QMainWindow):
         # PushButtons
         self.central_widget.generate_btn.clicked.connect(
             self.generate_gif)
+        self.central_widget.reset_btn.clicked.connect(self.reset_parameters)
         # GIF Player
-        self.central_widget.gif_player.resize.connect(self.resize_loaded_gif)
+        self.central_widget.play_btn.clicked.connect(self.play_loaded_gif)
+        self.central_widget.pause_btn.clicked.connect(self.pause_loaded_gif)
+        self.central_widget.stop_btn.clicked.connect(self.stop_loaded_gif)
+        self.central_widget.next_frame_btn.clicked.connect(self.next_frame_loaded_gif)
 
         # Set initial state for widgets in central_widget.
         self.central_widget.scale_input.setDisabled(True)
@@ -192,8 +205,34 @@ class MagicBoxGui(QtGui.QMainWindow):
 
         self.show()
 
+    def reset_parameters(self):
+        if self.magic_box.info.video:
+            self.central_widget.start_input.setText('0')
+            self.central_widget.end_input.setText(str(self.magic_box.info.original_duration))
+            self.central_widget.width_input.setText(str(self.magic_box.info.original_size[0]))
+            self.central_widget.height_input.setText(str(self.magic_box.info.original_size[1]))
+            self.central_widget.fps_input.setText(str(self.magic_box.info.original_fps))
+        else:
+            self.central_widget.start_input.setText('')
+            self.central_widget.end_input.setText('')
+            self.central_widget.width_input.setText('')
+            self.central_widget.height_input.setText('')
+            self.central_widget.fps_input.setText('')
+        self.central_widget.scale_check.setCheckState(0)
+        self.central_widget.mirror_check.setCheckState(0)
+
+    def resizeEvent(self, event):
+        """Customize the resizeEvent() inherited from QWidget."""
+        super(MagicBoxGui, self).resizeEvent(event)
+        if self.loaded_gif:
+            size = self.central_widget.gif_player.size()
+            self.resize_loaded_gif(size)
+
     def generate_gif(self):
         if self.magic_box.info.is_valid():
+            if self.loaded_gif:
+                # Close opened gif.
+                self.loaded_gif.setFileName(QtCore.QString())
             self.magic_box.make_clip()
             gif_name = QtGui.QFileDialog.getSaveFileName(
                 self, 'Save GIF File', QtCore.QString(),
@@ -208,14 +247,13 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.loaded_gif.setFileName(gif_name)
         player_size = self.central_widget.gif_player.size()
         self.central_widget.gif_player.setMovie(self.loaded_gif)
+        self.loaded_gif.frameChanged.connect(self.update_status_bar_frame_number)
         self.loaded_gif.start()
-        print self.loaded_gif.currentPixmap().height(), self.loaded_gif.currentPixmap().size()
         self.resize_loaded_gif(player_size)
 
     def resize_loaded_gif(self, size):
         """Resize movie to size while keeping its aspect ratio."""
         movie = self.loaded_gif
-        jump = movie.jumpToFrame(1)
         snapshot = movie.currentImage()
         current_size = snapshot.size()
         current_width = float(current_size.width())
@@ -232,6 +270,32 @@ class MagicBoxGui(QtGui.QMainWindow):
             new_width = int(current_width * new_height / current_height)
         movie.setScaledSize(QtCore.QSize(new_width, new_height))
 
+    def update_status_bar_frame_number(self, frame):
+        message = 'Frame: {frame}/{total_frame}'.format(frame=frame, total_frame=self.loaded_gif.frameCount())
+        self.statusBar().showMessage(message)
+
+    def play_loaded_gif(self):
+        if self.loaded_gif:
+            self.loaded_gif.start()
+
+    def pause_loaded_gif(self):
+        if self.loaded_gif:
+            self.loaded_gif.setPaused(True)
+
+    def stop_loaded_gif(self):
+        if self.loaded_gif:
+            self.loaded_gif.stop()
+
+    def next_frame_loaded_gif(self):
+        if self.loaded_gif:
+            self.loaded_gif.jumpToNextFrame()
+
+    def jump_to_frame_loaded_gif(self, number):
+        """Jump to a frame.
+        Cannot jump back."""
+        if self.loaded_gif:
+            self.loaded_gif.jumpToFrame(min(number, self.loaded_gif.frameCount() - 1))
+
     def handle_start_change(self, start):
         if start:
             self.magic_box.info.update_start(start)
@@ -243,16 +307,16 @@ class MagicBoxGui(QtGui.QMainWindow):
     def handle_width_change(self, width):
         if width:
             self.magic_box.info.update_width(width)
-            if not self.central_widget.height_input.text():
-                # Update height if height input is empty.
+            if not self.central_widget.height_input.text() and self.magic_box.info.video:
+                # Update height if height input is empty and there is video opened.
                 height = float(width) / self.magic_box.info.original_size[0] * self.magic_box.info.original_size[1]
                 self.central_widget.height_input.setText(str(height))
 
     def handle_height_change(self, height):
         if height:
             self.magic_box.info.update_height(height)
-            if not self.central_widget.width_input.text():
-                # Update width if width input is empty.
+            if not self.central_widget.width_input.text() and self.magic_box.info.video:
+                # Update width if width input is empty and there is video opened.
                 width = float(height) / self.magic_box.info.original_size[1] * self.magic_box.info.original_size[0]
                 self.central_widget.width_input.setText(str(width))
 
@@ -263,7 +327,7 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.central_widget.height_input.setDisabled(scaled)
         self.central_widget.scale_input.setDisabled(not scaled)
 
-        if scaled:
+        if scaled and self.magic_box.info.video:
             width, height = self.magic_box.info.original_size
             self.central_widget.width_input.setText(str(width))
             self.central_widget.height_input.setText(str(height))
@@ -294,7 +358,7 @@ class MagicBoxGui(QtGui.QMainWindow):
         else:
             self.magic_box.info.update_mirror(False)
 
-    def show_open_file_dialog(self):
+    def show_open_video_dialog(self):
         """Open video file to be processed."""
         # Default open directory is current directory.
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Open Video File',)
@@ -311,14 +375,25 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.magic_box.info.update_video(str(fname))
         self.magic_box.clip = VideoFileClip(str(fname))
         duration = self.magic_box.clip.duration
+        self.magic_box.info.original_duration = duration
         w, h = self.magic_box.clip.size
         self.magic_box.info.original_size = (w, h)
+        fps = self.magic_box.clip.fps
+        self.magic_box.original_fps = fps
 
         # Update video info in main window.
         self.central_widget.start_input.setText('0')
         self.central_widget.end_input.setText(str(duration))
         self.central_widget.width_input.setText(str(w))
         self.central_widget.height_input.setText(str(h))
+        self.central_widget.fps_input.setText(str(fps))
+
+    def show_open_gif_dialog(self):
+        """Open GIF file and load it to GIF player."""
+        gif_name = QtGui.QFileDialog.getOpenFileName(
+                self, 'Open GIF File', QtCore.QString(),
+                "GIF (*.gif)")
+        self.load_gif(gif_name)
 
 
 class MagicBoxCentralWidget(QtGui.QWidget):
