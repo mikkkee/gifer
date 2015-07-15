@@ -95,15 +95,17 @@ class MagicBoxGui(QtGui.QMainWindow):
 
         self.show()
 
+
 class MagicBoxCentralWidget(QtGui.QWidget):
     """Central widget designed by QT Designer."""
+
     def __init__(self):
         super(MagicBoxCentralWidget, self).__init__()
         uic.loadUi('MagicBox.ui', self)
 
         media = Phonon.MediaSource('foam.mp4')
         print self.player
-        self.player.load(media)
+        self.player.play(media)
 
 
 def main(argv):
