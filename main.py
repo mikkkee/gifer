@@ -1,7 +1,7 @@
 __author__ = 'Jianfeng'
 
 import sys
-import time
+import os
 
 from PyQt4 import QtGui, QtCore, uic
 from moviepy.editor import *
@@ -98,7 +98,7 @@ class MagicBox(object):
         """Customize clip according to details in self.info"""
         # Init from video file.
         self.clip = VideoFileClip(self.info.video)
-        # Create subclip.
+        # Create sub-clip.
         self.clip = self.clip.subclip(self.info.start, self.info.end)
         # Resize clip.
         if self.info.scale:
@@ -118,7 +118,9 @@ class MagicBoxGui(QtGui.QMainWindow):
         super(MagicBoxGui, self).__init__()
         self.magic_box = MagicBox()
         self.central_widget = MagicBoxCentralWidget()
-        self.loaded_gif = None # GIF to be loaded in the player.
+        self.loaded_gif = None  # GIF to be loaded in the player.
+        self.last_video_dir = QtCore.QString()  # Last directory where user opened a video, default is current dir.
+        self.last_gif_dir = QtCore.QString()  # Last directory where user saved a gif, default is current dir.
         self.initUI()
 
     def initUI(self):
@@ -204,6 +206,44 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.move(100, 100)
 
         self.show()
+
+    def show_open_video_dialog(self):
+        """Open video file to be processed."""
+        # Default open directory is current directory.
+        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open Video File', self.last_video_dir)
+        self.last_video_dir = QtCore.QString(os.path.dirname(str(fname)))
+
+        if not fname:
+            # In case user closed open file dialog.
+            return 1
+
+        # Update movie name in statusBar.
+        msg = 'Selected: {name}'.format(name=fname)
+        self.statusBar().showMessage(msg)
+
+        # Update video info - resolution, duration, fps.
+        self.magic_box.info.update_video(str(fname))
+        self.magic_box.clip = VideoFileClip(str(fname))
+        duration = self.magic_box.clip.duration
+        self.magic_box.info.original_duration = duration
+        w, h = self.magic_box.clip.size
+        self.magic_box.info.original_size = (w, h)
+        fps = self.magic_box.clip.fps
+        self.magic_box.original_fps = fps
+
+        # Update video info in main window.
+        self.central_widget.start_input.setText('0')
+        self.central_widget.end_input.setText(str(duration))
+        self.central_widget.width_input.setText(str(w))
+        self.central_widget.height_input.setText(str(h))
+        self.central_widget.fps_input.setText(str(fps))
+
+    def show_open_gif_dialog(self):
+        """Open GIF file and load it to GIF player."""
+        gif_name = QtGui.QFileDialog.getOpenFileName(
+                self, 'Open GIF File', self.last_gif_dir,
+                "GIF (*.gif)")
+        self.load_gif(gif_name)
 
     def reset_parameters(self):
         if self.magic_box.info.video:
@@ -357,43 +397,6 @@ class MagicBoxGui(QtGui.QMainWindow):
             self.magic_box.info.update_mirror(True)
         else:
             self.magic_box.info.update_mirror(False)
-
-    def show_open_video_dialog(self):
-        """Open video file to be processed."""
-        # Default open directory is current directory.
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open Video File',)
-
-        if not fname:
-            # In case user closed open file dialog.
-            return 1
-
-        # Update movie name in statusBar.
-        msg = 'Selected: {name}'.format(name=fname)
-        self.statusBar().showMessage(msg)
-
-        # Update video info - resolution, duration, fps.
-        self.magic_box.info.update_video(str(fname))
-        self.magic_box.clip = VideoFileClip(str(fname))
-        duration = self.magic_box.clip.duration
-        self.magic_box.info.original_duration = duration
-        w, h = self.magic_box.clip.size
-        self.magic_box.info.original_size = (w, h)
-        fps = self.magic_box.clip.fps
-        self.magic_box.original_fps = fps
-
-        # Update video info in main window.
-        self.central_widget.start_input.setText('0')
-        self.central_widget.end_input.setText(str(duration))
-        self.central_widget.width_input.setText(str(w))
-        self.central_widget.height_input.setText(str(h))
-        self.central_widget.fps_input.setText(str(fps))
-
-    def show_open_gif_dialog(self):
-        """Open GIF file and load it to GIF player."""
-        gif_name = QtGui.QFileDialog.getOpenFileName(
-                self, 'Open GIF File', QtCore.QString(),
-                "GIF (*.gif)")
-        self.load_gif(gif_name)
 
 
 class MagicBoxCentralWidget(QtGui.QWidget):
