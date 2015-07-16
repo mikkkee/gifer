@@ -2,9 +2,11 @@ __author__ = 'Jianfeng'
 
 import sys
 import os
+import cStringIO
 
 from PyQt4 import QtGui, QtCore, uic
 from moviepy.editor import *
+import moviepy.video.fx.all as afx
 
 
 class Info(object):
@@ -86,6 +88,20 @@ class Info(object):
             self.mirrored = mirrored
 
 
+class ConsoleCapture(QtCore.QObject):
+    """Capture MoviePy console output to show on status bar."""
+
+    text_written = QtCore.pyqtSignal(str)
+    text_content = None
+
+    def write(self, text):
+        self.text_content = text
+        self.text_written.emit(self.text_content)
+
+    def flush(self):
+        self.text_written.emit(self.text_content)
+
+
 class MagicBox(object):
     """A magic box which can convert videos into GIF pictures."""
 
@@ -108,6 +124,8 @@ class MagicBox(object):
 
     def save_gif(self, name):
         """Write VideoClip to a GIF file."""
+        if self.info.mirrored:
+            self.clip = afx.time_symmetrize(self.clip)
         self.clip.write_gif(name, fps=self.info.fps, fuzz=self.info.fuzz)
 
 
@@ -121,7 +139,12 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.loaded_gif = None  # GIF to be loaded in the player.
         self.last_video_dir = QtCore.QString()  # Last directory where user opened a video, default is current dir.
         self.last_gif_dir = QtCore.QString()  # Last directory where user saved a gif, default is current dir.
+        sys.stdout = ConsoleCapture(text_written=self.update_status_bar_gif_progress)
         self.initUI()
+
+    def __del__(self):
+        # Restore sys.stdout
+        sys.stdout = sys.__stdout__
 
     def initUI(self):
         self.statusBar().showMessage('Ready')
@@ -215,7 +238,7 @@ class MagicBoxGui(QtGui.QMainWindow):
 
         if not fname:
             # In case user closed open file dialog.
-            return 1
+            return
 
         # Update movie name in statusBar.
         msg = 'Selected: {name}'.format(name=fname)
@@ -243,7 +266,12 @@ class MagicBoxGui(QtGui.QMainWindow):
         gif_name = QtGui.QFileDialog.getOpenFileName(
                 self, 'Open GIF File', self.last_gif_dir,
                 "GIF (*.gif)")
-        self.load_gif(gif_name)
+        if gif_name:
+            self.last_gif_dir = QtCore.QString(os.path.dirname(str(gif_name)))
+            self.load_gif(gif_name)
+
+    def update_status_bar_gif_progress(self, text):
+        self.statusBar().showMessage(text)
 
     def reset_parameters(self):
         if self.magic_box.info.video:
@@ -275,9 +303,12 @@ class MagicBoxGui(QtGui.QMainWindow):
                 self.loaded_gif.setFileName(QtCore.QString())
             self.magic_box.make_clip()
             gif_name = QtGui.QFileDialog.getSaveFileName(
-                self, 'Save GIF File', QtCore.QString(),
+                self, 'Save GIF File', self.last_gif_dir,
                 "GIF (*.gif)")
-            self.magic_box.save_gif(str(gif_name))
+
+            if gif_name:
+                self.last_gif_dir = QtCore.QString(os.path.dirname(str(gif_name)))
+                self.magic_box.save_gif(str(gif_name))
 
             # Open GIF file after saved.
             self.load_gif(str(gif_name))
