@@ -224,6 +224,8 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.central_widget.scale_input.setDisabled(True)
         self.central_widget.gif_player.setAlignment(QtCore.Qt.AlignCenter)
 
+        ############ Central Widget Setup Done ############
+
         # Attach central_widget to main window.
         self.setCentralWidget(self.central_widget)
         self.move(100, 100)
@@ -442,7 +444,7 @@ class MagicBoxCentralWidget(QtGui.QWidget, Ui_Form):
 
     def __init__(self):
         super(MagicBoxCentralWidget, self).__init__()
-        # ALternative: Use .ui file - uic.loadUi('MagicBox.ui', self)
+        # ALternative: Use .ui file - uic.loadUi('central_widget.ui', self)
         self.setupUi(self)
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'MagicBox.ui'
+# Form implementation generated from reading ui file 'central_widget.ui'
 #
 # Created: Fri Jul 17 14:37:27 2015
 #      by: PyQt4 UI code generator 4.10.4
