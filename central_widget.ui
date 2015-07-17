@@ -96,30 +96,10 @@
      <property name="rightMargin">
       <number>0</number>
      </property>
-     <item row="2" column="2">
-      <widget class="QLabel" name="height_label">
-       <property name="text">
-        <string>Height (px)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="0">
       <widget class="QLabel" name="width_label">
        <property name="text">
         <string>Width (px)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="start_label">
-       <property name="text">
-        <string>Start Time(s)</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -136,9 +116,6 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="3">
-      <widget class="QLineEdit" name="fuzz_input"/>
-     </item>
      <item row="2" column="1">
       <widget class="QLineEdit" name="width_input"/>
      </item>
@@ -152,13 +129,20 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="fps_input"/>
-     </item>
-     <item row="3" column="2">
-      <widget class="QLabel" name="fuzz_label">
+     <item row="1" column="0">
+      <widget class="QLabel" name="start_label">
        <property name="text">
-        <string>Fuzz (%)</string>
+        <string>Start Time(s)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="height_label">
+       <property name="text">
+        <string>Height (px)</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -167,19 +151,6 @@
      </item>
      <item row="2" column="3">
       <widget class="QLineEdit" name="height_input"/>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="start_input"/>
-     </item>
-     <item row="1" column="2">
-      <widget class="QLabel" name="end_label">
-       <property name="text">
-        <string>End Time (s)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
      </item>
      <item row="1" column="3">
       <widget class="QLineEdit" name="end_input"/>
@@ -193,6 +164,22 @@
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="fps_input"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="end_label">
+       <property name="text">
+        <string>End Time (s)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="start_input"/>
      </item>
      <item row="0" column="5">
       <widget class="QPushButton" name="video_file_btn">
@@ -210,6 +197,19 @@
         <string>Mirror GIF</string>
        </property>
       </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLabel" name="speed_label">
+       <property name="text">
+        <string>Speed</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="3">
+      <widget class="QLineEdit" name="speed_input"/>
      </item>
     </layout>
    </item>
@@ -358,6 +358,25 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>video_file_input</tabstop>
+  <tabstop>video_file_btn</tabstop>
+  <tabstop>start_input</tabstop>
+  <tabstop>end_input</tabstop>
+  <tabstop>width_input</tabstop>
+  <tabstop>height_input</tabstop>
+  <tabstop>scale_check</tabstop>
+  <tabstop>scale_input</tabstop>
+  <tabstop>fps_input</tabstop>
+  <tabstop>speed_input</tabstop>
+  <tabstop>mirror_check</tabstop>
+  <tabstop>reset_btn</tabstop>
+  <tabstop>generate_btn</tabstop>
+  <tabstop>play_btn</tabstop>
+  <tabstop>pause_btn</tabstop>
+  <tabstop>next_frame_btn</tabstop>
+  <tabstop>stop_btn</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
