@@ -2,7 +2,6 @@ __author__ = 'Jianfeng'
 
 import sys
 import os
-import cStringIO
 
 from PyQt4 import QtGui, QtCore
 from moviepy.editor import *
