@@ -1,0 +1,1 @@
+# GIFer, a GIF animation maker
