@@ -7,12 +7,20 @@ of errors.
 
 import os
 import shutil
+import platform
 
 import moviepy
 
 _base_dir = moviepy.__path__[0]
-_video_all_rel_dir = 'video\\fx\\all'
-_audio_all_rel_dir = 'audio\\fx\\all'
+
+_platform = platform.platform()
+_video_all_rel_dir = 'video/fx/all'
+_audio_all_rel_dir = 'audio/fx/all'
+
+if _platform.startswith('Windows'):
+    _video_all_rel_dir = _video_all_rel_dir.replace('/', '\\')
+    _audio_all_rel_dir = _audio_all_rel_dir.replace('/', '\\')
+
 _video_all_dir = os.path.join(_base_dir, _video_all_rel_dir)
 _audio_all_dir = os.path.join(_base_dir, _audio_all_rel_dir)
 
