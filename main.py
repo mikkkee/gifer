@@ -211,16 +211,19 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.central_widget.mirror_check.stateChanged.connect(
             self.handle_mirrored_change)
         # PushButtons
-        self.central_widget.generate_btn.clicked.connect(
-            self.generate_gif)
+        self.central_widget.video_file_btn.clicked.connect(
+            self.show_open_video_dialog)
+        self.central_widget.generate_btn.clicked.connect(self.generate_gif)
         self.central_widget.reset_btn.clicked.connect(self.reset_parameters)
         # GIF Player
         self.central_widget.play_btn.clicked.connect(self.play_loaded_gif)
         self.central_widget.pause_btn.clicked.connect(self.pause_loaded_gif)
         self.central_widget.stop_btn.clicked.connect(self.stop_loaded_gif)
-        self.central_widget.next_frame_btn.clicked.connect(self.next_frame_loaded_gif)
+        self.central_widget.next_frame_btn.clicked.connect(
+            self.next_frame_loaded_gif)
 
         # Set initial state for widgets in central_widget.
+        self.central_widget.video_file_input.setReadOnly(True)
         self.central_widget.scale_input.setDisabled(True)
         self.central_widget.gif_player.setAlignment(QtCore.Qt.AlignCenter)
 
@@ -236,11 +239,12 @@ class MagicBoxGui(QtGui.QMainWindow):
         """Open video file to be processed."""
         # Default open directory is current directory.
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Open Video File', self.last_video_dir)
-        self.last_video_dir = QtCore.QString(os.path.dirname(str(fname)))
 
         if not fname:
             # In case user closed open file dialog.
             return
+
+        self.last_video_dir = QtCore.QString(os.path.dirname(str(fname)))
 
         # Update movie name in statusBar.
         msg = 'Selected: {name}'.format(name=fname)
@@ -257,6 +261,7 @@ class MagicBoxGui(QtGui.QMainWindow):
         self.magic_box.original_fps = fps
 
         # Update video info in main window.
+        self.central_widget.video_file_input.setText(str(fname))
         self.central_widget.start_input.setText('0')
         self.central_widget.end_input.setText(str(duration))
         self.central_widget.width_input.setText(str(w))
@@ -269,6 +274,7 @@ class MagicBoxGui(QtGui.QMainWindow):
                 self, 'Open GIF File', self.last_gif_dir,
                 "GIF (*.gif)")
         if gif_name:
+            # In case user close dialog without open any files.
             self.last_gif_dir = QtCore.QString(os.path.dirname(str(gif_name)))
             self.load_gif(gif_name)
 
@@ -344,7 +350,7 @@ class MagicBoxGui(QtGui.QMainWindow):
         movie.setScaledSize(QtCore.QSize(new_width, new_height))
 
     def update_status_bar_frame_number(self, frame):
-        message = 'Frame: {frame}/{total_frame}'.format(frame=frame, total_frame=self.loaded_gif.frameCount())
+        message = 'Frame: {frame}/{total_frame}'.format(frame=frame + 1, total_frame=self.loaded_gif.frameCount())
         self.statusBar().showMessage(message)
 
     def play_loaded_gif(self):
