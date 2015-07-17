@@ -2,11 +2,13 @@ __author__ = 'Jianfeng'
 
 import sys
 import os
+import ctypes
 
 from PyQt4 import QtGui, QtCore
 from moviepy.editor import *
 import moviepy.video.fx.all as afx
 from central_widget_ui import Ui_Form
+import icons
 
 
 class Info(object):
@@ -158,6 +160,8 @@ class MagicBoxGui(QtGui.QMainWindow):
         # Change sys.stdout to capture MoviePy output.
         sys.stdout = ConsoleCapture(
             text_written=self.update_status_bar_gif_progress)
+        # Set window icon.
+        self.setWindowIcon(QtGui.QIcon(':/images/logo_tray.png'))
 
         self.init_ui()
 
@@ -515,6 +519,11 @@ class MagicBoxCentralWidget(QtGui.QWidget, Ui_Form):
 
 
 def main(argv):
+    # Explicitly tell Windows to use the correct AppUserModelID instead of
+    # Python's AppUserModelID.
+    # gifer_id = 'lazzyrabbit.gifer.v0.1' # arbitrary string
+    # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(gifer_id)
+
     app = QtGui.QApplication(argv)
     mb = MagicBoxGui()
 

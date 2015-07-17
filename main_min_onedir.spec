@@ -41,4 +41,5 @@ coll = COLLECT(exe,
                a.datas,
                strip=None,
                upx=True,
-               name='main')
+               name='main',
+               icon='images\\logo_tray.ico')
