@@ -12,7 +12,7 @@ _platform = platform.platform()
 _io_rel_dir = 'video/io'
 
 if _platform.startswith('Windows'):
-    _sliders_rel_dir = _sliders_rel_dir.replace('/', '\\')
+    _io_rel_dir = _io_rel_dir.replace('/', '\\')
 
 _io_dir = os.path.join(_base_dir, _io_rel_dir)
 
