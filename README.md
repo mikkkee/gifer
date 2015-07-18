@@ -33,8 +33,8 @@ Don-Don Donuts, let's go nuts!
 
 ## How to
 
-### Install binary file
-- Windows 64 binary file
+### Portable binary file
+- Windows 64 binary file: [Download](https://github.com/mikkkee/gifer/releases/download/v0.1.0-beta/gifer.0.1.0.win64.binary.zip)
 
 ### Build from source
 
