@@ -77,17 +77,28 @@ def make_moviepy_static():
     """Turn runtime generated modules video.fx.all and audio.fx.all
     into static modules."""
     print("Preparing MoviePy for building - video.fx.all/audio.fx.all.")
-    exec 'python scripts/make_moviepy_static.py'
+    script = 'scripts/make_moviepy_static.py'
+    if platform.platform().startswith('Windows'):
+        script = script.replace('/', '\\\\')
+    exec 'python {script}'.format(script=script)
 
 def rm_matplotlib_dependency_in_moviepy():
     """Remove some unused files which have dependencies on MatPlotLib."""
     print("Preparing MoviePy for building - MatPlotLib dependent files.")
-    exec 'python scripts/rm_matplot_lib_dependency_in_moviepy.py'
+
+    script = 'scripts/rm_matplot_lib_dependency_in_moviepy.py'
+    if platform.platform().startswith('Windows'):
+        script = script.replace('/', '\\\\')
+    exec 'python {script}'.format(script=script)
 
 def restore_moviepy():
     """Restore changes made to MoviePy."""
     print("Restore MoviePy changes.")
-    exec 'python scripts/restore_moviepy.py'
+
+    script = 'scripts/restore_moviepy.py'
+    if platform.platform().startswith('Windows'):
+        script = script.replace('/', '\\\\')
+    exec 'python {script}'.format(script=script)
 
 def build_exe(spec_file):
     """Build exe using PyInstaller and spec_file."""
