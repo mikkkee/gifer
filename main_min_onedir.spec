@@ -1,5 +1,8 @@
 # -*- mode: python -*-
-a = Analysis(['main.py'],
+import os
+import matplotlib
+
+a = Analysis(['gifer.py'],
              pathex=['D:\\Google Drive\\Coding\\gifer'],
              hiddenimports=[],
              hookspath=None,
@@ -11,7 +14,6 @@ a.binaries = [x for x in a.binaries if not x[0].startswith('matplotlib')]
 a.binaries = [x for x in a.binaries if not x[0].startswith('scipy')]
 a.binaries = [x for x in a.binaries if not x[0].startswith('pydoc')]
 a.binaries = [x for x in a.binaries if not x[0].startswith('ssl')]
-a.binaries = [x for x in a.binaries if not x[0].startswith('moviepy.video.io.sliders')]
 
 # Target remove specific ones...
 a.binaries = a.binaries - TOC([
@@ -23,8 +25,9 @@ a.binaries = a.binaries - TOC([
  ('_tkinter', '', '')])
 
 # Delete everything bar matplotlib data...
+_matplotlib_path = os.path.dirname(matplotlib.__file__)
 a.datas = [x for x in a.datas if
- os.path.dirname(x[1]).startswith("C:\\Anaconda\\Lib\\site-packages\\matplotlib")]
+ os.path.dirname(x[1]).startswith(_matplotlib_path)]
  
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
