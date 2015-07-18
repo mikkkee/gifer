@@ -77,17 +77,17 @@ def make_moviepy_static():
     """Turn runtime generated modules video.fx.all and audio.fx.all
     into static modules."""
     print("Preparing MoviePy for building - video.fx.all/audio.fx.all.")
-    exec 'python make_moviepy_static.py'
+    exec 'python scripts/make_moviepy_static.py'
 
 def rm_matplotlib_dependency_in_moviepy():
     """Remove some unused files which have dependencies on MatPlotLib."""
     print("Preparing MoviePy for building - MatPlotLib dependent files.")
-    exec 'python rm_matplot_lib_dependency_in_moviepy.py'
+    exec 'python scripts/rm_matplot_lib_dependency_in_moviepy.py'
 
 def restore_moviepy():
     """Restore changes made to MoviePy."""
     print("Restore MoviePy changes.")
-    exec 'python restore_moviepy.py'
+    exec 'python scripts/restore_moviepy.py'
 
 def build_exe(spec_file):
     """Build exe using PyInstaller and spec_file."""

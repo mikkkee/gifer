@@ -2,13 +2,13 @@ __author__ = 'Jianfeng'
 
 import sys
 import os
-import ctypes
 
 from PyQt4 import QtGui, QtCore
 from moviepy.editor import *
 import moviepy.video.fx.all as afx
-from central_widget_ui import Ui_Form
-import icons
+
+from resources.central_widget_ui import Ui_Form
+import resources.icon
 
 
 class Info(object):
