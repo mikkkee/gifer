@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'central_widget.ui'
 #
-# Created: Fri Jul 17 21:33:25 2015
+# Created: Sat Jul 18 11:03:57 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,7 +27,7 @@ class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
         Form.resize(756, 580)
-        Form.setMinimumSize(QtCore.QSize(643, 492))
+        Form.setMinimumSize(QtCore.QSize(756, 580))
         self.gridLayout_2 = QtGui.QGridLayout(Form)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
