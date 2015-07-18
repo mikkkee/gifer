@@ -1,4 +1,4 @@
-# GIFer, a GIF animation maker
+# ![](images/logo_icon.png) GIFer, a GIF animation maker
 
 ## Screenshots
 
@@ -49,3 +49,10 @@ The GUI is made using [PyQt4](http://www.riverbankcomputing.com/software/pyqt/do
 
 #### Build
 `python build.py`
+
+
+## Icon Credit
+The GIFer Icon was made based on the
+[rabbit icon](http://www.flaticon.com/free-icon/rabbit-facing-right_84025) by
+[Freepik](http://www.flaticon.com/authors/freepik) from
+[www.flaticon.com](http://www.flaticon.com)
