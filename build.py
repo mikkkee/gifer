@@ -10,6 +10,11 @@ import matplotlib as mpl
 
 import gifer
 
+
+# If you have not modified MoviePy to get ready for PyInstaller, set
+# __FRESH__ to True. Set __FRESH__ to False only if you have manually
+# changed MoviePy using scripts/make_movie_py_static.py and
+# scripts/rm_matplot_lib_dependency_in_moviepy.py .
 __FRESH__ = False
 
 def write_spec_file(spec_name):
@@ -80,7 +85,7 @@ def make_moviepy_static():
     script = 'scripts/make_moviepy_static.py'
     if platform.platform().startswith('Windows'):
         script = script.replace('/', '\\\\')
-    exec 'python {script}'.format(script=script)
+    call('python {script}'.format(script=script).split())
 
 def rm_matplotlib_dependency_in_moviepy():
     """Remove some unused files which have dependencies on MatPlotLib."""
@@ -89,7 +94,7 @@ def rm_matplotlib_dependency_in_moviepy():
     script = 'scripts/rm_matplot_lib_dependency_in_moviepy.py'
     if platform.platform().startswith('Windows'):
         script = script.replace('/', '\\\\')
-    exec 'python {script}'.format(script=script)
+    call('python {script}'.format(script=script).split())
 
 def restore_moviepy():
     """Restore changes made to MoviePy."""
@@ -98,7 +103,7 @@ def restore_moviepy():
     script = 'scripts/restore_moviepy.py'
     if platform.platform().startswith('Windows'):
         script = script.replace('/', '\\\\')
-    exec 'python {script}'.format(script=script)
+    call('python {script}'.format(script=script).split())
 
 def build_exe(spec_file):
     """Build exe using PyInstaller and spec_file."""
