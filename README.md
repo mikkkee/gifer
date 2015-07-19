@@ -39,6 +39,8 @@ Don-Don Donuts, let's go nuts!
 ### Build from source
 
 #### Requirements
+
+GIFer is written in Python 2.7 and is not compatible with Python 3.x.
 GIFer uses [MoviePy](https://github.com/Zulko/moviepy) to make GIF animations.
 The GUI is made using [PyQt4](http://www.riverbankcomputing.com/software/pyqt/download).
 

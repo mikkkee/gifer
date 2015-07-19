@@ -6,8 +6,6 @@ import os
 import platform
 from subprocess import call
 
-import matplotlib as mpl
-
 import gifer
 
 
@@ -16,6 +14,14 @@ import gifer
 # changed MoviePy using scripts/make_movie_py_static.py and
 # scripts/rm_matplot_lib_dependency_in_moviepy.py .
 __FRESH__ = False
+
+# Do exclude matplotlib data files if matplotlib exists.
+try:
+    import matplotlib as mpl
+    __mpl__ =True
+except ImportError:
+    __mpl__ = False
+
 
 def write_spec_file(spec_name):
     """Write build options to spec file."""
@@ -51,10 +57,11 @@ def write_spec_file(spec_name):
         ('_tkinter', '', '')])\n\n""")
 
     # Delete MatplotLib data
-    _mpl_dir = os.path.dirname(mpl.__file__)
-    _mpl_fmt = "a.datas = [x for x in a.datas if \
+    if __mpl__:
+        _mpl_dir = os.path.dirname(mpl.__file__)
+        _mpl_fmt = "a.datas = [x for x in a.datas if \
 os.path.dirname(x[1]).startswith('{mpl_dir}')]\n\n"
-    spec.write(_mpl_fmt.format(mpl_dir=_mpl_dir))
+        spec.write(_mpl_fmt.format(mpl_dir=_mpl_dir))
 
     # Write pyz / exe options
     spec.write('pyz = PYZ(a.pure)\n')
