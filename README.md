@@ -27,7 +27,7 @@ Generate GIF animations with some most useful parameters:
 - *Mirror GIF*, make time symmetric GIF animation.
 
 ## Gallery
-Don-Don Donuts, let's go nuts!
+Don Don Donuts, Do-n to Ikou!
 
 ![donuts](screenshots/gifer_gallery_donuts.gif)
 
