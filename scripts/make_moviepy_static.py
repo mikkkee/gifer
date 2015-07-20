@@ -28,7 +28,7 @@ _audio_all_dir = os.path.join(_base_dir, _audio_all_rel_dir)
 for _cur_dir in [_video_all_dir, _audio_all_dir]:
     os.chdir(_cur_dir)
 
-    shutil.copy('__init__.py', '__init__py.backup')
+    shutil.copy('__init__.py', '__init__.py.backup')
 
     _directory = os.path.dirname(_cur_dir)
 
