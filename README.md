@@ -50,7 +50,16 @@ PIL (Python Imaging Library) is required to resize GIF animation.
 1. Install [SIP](http://www.riverbankcomputing.com/software/sip/download).
 2. Install [PyQt4](http://www.riverbankcomputing.com/software/pyqt/download).
 3. Install MoviePy, `pip install moviepy`.
-4. Install [Pillow](http://pillow.readthedocs.org/en/latest/) (A PIL branch, recommended), `pip install Pillow`.
+4. Install [Pillow](http://pillow.readthedocs.org/en/latest/) (A PIL branch, 
+   recommended), `pip install Pillow`.
+
+#### Run From Source
+You don't need to pack GIFer into a executable to play with it.
+
+Just run `python gifer.py` to start making GIFs. 
+
+You can choose to build a portable executable file whenever you want following 
+the steps below..
 
 #### Build
 If you have not modified MoviePy using script files in ./scripts/, please
