@@ -50,7 +50,28 @@ The GUI is made using [PyQt4](http://www.riverbankcomputing.com/software/pyqt/do
 3. Install MoviePy, `pip install moviepy`.
 
 #### Build
+If you have not modified MoviePy using script files in ./scripts/, please
+remember to set `__FRESH__` to `True` in `build.py`, this will inform GIFer
+that it's dealing with a freshly installed MoviePy module. GIFer will then
+modify MoviePy before building executable files and restore all changes after
+building. After this, just run:
+
 `python build.py`
+
+in the same directory of `gifer.py`.
+
+#### Debug
+GIFer captures console output to display message on its UI; you need to stop
+this capturing behavior to see error code and trackbacks.
+
+Comment out
+```python
+sys.stdout = ConsoleCapture(
+              text_written=self.update_status_bar_gif_progress)
+```
+in `gifer.py` to stop GIFer from capturing console outputs. Remember to restore
+this change after you've done your debugging, or GIFer will not be able to
+display animation creating progress.
 
 
 ## Icon Credit
