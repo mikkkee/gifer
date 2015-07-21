@@ -34,7 +34,8 @@ Don Don Donuts, Do-n to Ikou!
 ## How to
 
 ### Portable binary file
-- Windows 64 binary file: [Download](https://github.com/mikkkee/gifer/releases/download/v0.1.0-beta/gifer.0.1.0.win64.binary.zip)
+- Windows 64 binary file: [Download](https://github.com/mikkkee/gifer/releases/download/v0.1.1/gifer.0.1.1.win64.binary.exe.zip)
+- Windows 32 binary file: [Download](https://github.com/mikkkee/gifer/releases/download/v0.1.1/gifer.0.1.1.win32.binary.exe.zip)
 
 ### Build from source
 
