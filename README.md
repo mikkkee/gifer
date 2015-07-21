@@ -44,11 +44,13 @@ Don Don Donuts, Do-n to Ikou!
 GIFer is written in Python 2.7 and is not compatible with Python 3.x.
 GIFer uses [MoviePy](https://github.com/Zulko/moviepy) to make GIF animations.
 The GUI is made using [PyQt4](http://www.riverbankcomputing.com/software/pyqt/download).
+PIL (Python Imaging Library) is required to resize GIF animation.
 
 ##### Install Requirements
 1. Install [SIP](http://www.riverbankcomputing.com/software/sip/download).
 2. Install [PyQt4](http://www.riverbankcomputing.com/software/pyqt/download).
 3. Install MoviePy, `pip install moviepy`.
+4. Install [Pillow](http://pillow.readthedocs.org/en/latest/) (A PIL branch, recommended), `pip install Pillow`.
 
 #### Build
 If you have not modified MoviePy using script files in ./scripts/, please
