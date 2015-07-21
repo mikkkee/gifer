@@ -158,8 +158,8 @@ class MagicBoxGui(QtGui.QMainWindow):
         # Last directory where user saved a gif, default is current dir.
         self.last_gif_dir = QtCore.QString()
         # Change sys.stdout to capture MoviePy output.
-        sys.stdout = ConsoleCapture(
-            text_written=self.update_status_bar_gif_progress)
+        # sys.stdout = ConsoleCapture(
+        #     text_written=self.update_status_bar_gif_progress)
         # Set window icon.
         self.setWindowIcon(QtGui.QIcon(':/images/logo_tray.png'))
 

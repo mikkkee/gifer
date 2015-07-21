@@ -62,7 +62,7 @@ in the same directory of `gifer.py`.
 
 #### Debug
 GIFer captures console output to display message on its UI; you need to stop
-this capturing behavior to see error code and trackbacks.
+this capturing behavior to see error traceback codes.
 
 Comment out
 ```python
