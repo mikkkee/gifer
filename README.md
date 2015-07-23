@@ -42,8 +42,11 @@ Don Don Donuts, Do-n to Ikou!
 #### Requirements
 
 GIFer is written in Python 2.7 and is not compatible with Python 3.x.
+
 GIFer uses [MoviePy](https://github.com/Zulko/moviepy) to make GIF animations.
+
 The GUI is made using [PyQt4](http://www.riverbankcomputing.com/software/pyqt/download).
+
 PIL (Python Imaging Library) is required to resize GIF animation.
 
 ##### Install Requirements
