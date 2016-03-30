@@ -10,6 +10,12 @@ Screenshot on start.
 
 ![screenshot empty](screenshots/gifer_screenshot.PNG)
 
+
+## ToDo
+
+- Crop on screen
+- Preview of Video
+
 ## Parameters Overview
 Generate GIF animations with some most useful parameters:
 - *Video File*, the video source file to generate GIF.
