@@ -1,0 +1,70 @@
+from enaml.layout.api import hbox, vbox
+from enaml.image import Image
+from enaml.widgets.api import ( Action, Container, Field, FileDialogEx, Form, Html, ImageView, Label, MainWindow, Menu, MenuBar, MPLCanvas, PushButton, StatusBar, StatusItem, ToolBar, Window )
+from enaml.stdlib.fields import IntField
+
+
+enamldef MagicBoxMenu( MenuBar ):
+    Menu:
+        title = 'File'
+        Action:
+            text = 'Open Video'
+            triggered ::
+                path = FileDialogEx.get_open_file_name( None )
+                if path:
+                    box.videoPath = path
+                    box.status = path
+
+
+enamldef MagicBoxStatusBar( StatusBar ):
+    StatusItem:
+        Label:
+            text := box.status
+
+
+enamldef MagicBoxGIFPanel( Container ):
+    constraints = [ vbox( canvas, actBtns ) ]
+    MPLCanvas: canvas:
+        figure << box.currentFrame
+        constraints << [ width == box.gifWidth,
+                         height == box.gifHeight, ]
+
+    ToolBar: actBtns:
+        Action:
+            text = 'Play'
+            triggered :: box.load_gif()
+        Action:
+            text = 'Pause'
+        Action:
+            text = 'Next Frame'
+        Action:
+            text = 'Stop'
+
+
+enamldef MagicBoxView( MainWindow ):
+    attr box
+    title = 'Gifer'
+    MagicBoxMenu:
+        pass
+    MagicBoxStatusBar:
+        pass
+    Container:
+        constraints = [ vbox( gifPanel, c1, c2, spacing=0 ), ]
+        MagicBoxGIFPanel: gifPanel:
+            pass
+        Container: c1:
+            constraints = [ hbox( btn1, btn2 ),
+                            btn1.width == btn2.width, ]
+            PushButton: btn1:
+                text = 'One'
+                clicked :: print 'One clicked'
+            PushButton: btn2:
+                text = 'Two'
+                clicked :: print 'Two clicked'
+        Container: c2:
+            Form: fm:
+                Label:
+                    text = 'FPS'
+                IntField:
+                    minimum = 0
+                    value  := box.fps
