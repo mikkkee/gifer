@@ -119,7 +119,7 @@ class MagicBox( object ):
     def __init__( self ):
         self.clip = None
         self._original_clip = None
-        self.info = Info( )
+        self.info = Info()
 
     def make_clip( self ):
         """Customize clip according to parameters in self.info"""
@@ -147,31 +147,31 @@ class MagicBoxGui( QtGui.QMainWindow ):
     """GUI for MagicBox."""
 
     def __init__( self ):
-        super( MagicBoxGui, self ).__init__( )
+        super( MagicBoxGui, self ).__init__()
         # MagicBox() does all editing / writing things.
-        self.magic_box = MagicBox( )
+        self.magic_box = MagicBox()
         # CentralWidget draw by QT Designer.
-        self.central_widget = MagicBoxCentralWidget( )
+        self.central_widget = MagicBoxCentralWidget()
         # GIF to be loaded in the player.
         self.loaded_gif = None
         # Last directory where user opened a video, default is current dir.
-        self.last_video_dir = QtCore.QString( )
+        self.last_video_dir = QtCore.QString()
         # Last directory where user saved a gif, default is current dir.
-        self.last_gif_dir = QtCore.QString( )
+        self.last_gif_dir = QtCore.QString()
         # Change sys.stdout to capture MoviePy output.
         # sys.stdout = ConsoleCapture(
         #     text_written=self.update_status_bar_gif_progress)
         # Set window icon.
         self.setWindowIcon( QtGui.QIcon( ':/images/logo_tray.png' ) )
 
-        self.init_ui( )
+        self.init_ui()
 
     def __del__( self ):
         """Restore sys.stdout"""
         sys.stdout = sys.__stdout__
 
     def init_ui( self ):
-        self.statusBar( ).showMessage( 'Ready' )
+        self.statusBar().showMessage( 'Ready' )
         self.setWindowTitle( 'GIFer' )
 
         # Menu bar - open video
@@ -190,11 +190,11 @@ class MagicBoxGui( QtGui.QMainWindow ):
         exit_action.setStatusTip( 'Exit application' )
         exit_action.triggered.connect( QtGui.qApp.quit )
 
-        menu = self.menuBar( )
+        menu = self.menuBar()
         file_menu = menu.addMenu( '&File' )
         file_menu.addAction( open_file )
         file_menu.addAction( open_gif )
-        file_menu.addSeparator( )
+        file_menu.addSeparator()
         file_menu.addAction( exit_action )
 
         ########### Setup central widget ##########
@@ -256,7 +256,7 @@ class MagicBoxGui( QtGui.QMainWindow ):
         # Set initial position of main window.
         self.move( 100, 100 )
 
-        self.show( )
+        self.show()
 
     def show_open_video_dialog( self ):
         """Open video file to be processed."""
@@ -275,7 +275,7 @@ class MagicBoxGui( QtGui.QMainWindow ):
 
         # Update movie name in statusBar.
         msg = u'Selected: {name}'.format( name=video_name )
-        self.statusBar( ).showMessage( msg )
+        self.statusBar().showMessage( msg )
 
         try:
             # Update video info, resolution, duration, fps, from VideoFileClip().
@@ -302,9 +302,9 @@ class MagicBoxGui( QtGui.QMainWindow ):
             # See https://bugs.python.org/issue1759845 for more details.
             err_msg = u"Due to a Python 2.X bug on Windows, unicode in file name {} is not supported".format(
                 video_name )
-            err_box = QtGui.QErrorMessage( )
+            err_box = QtGui.QErrorMessage()
             err_box.showMessage( err_msg )
-            self.statusBar( ).showMessage( None )
+            self.statusBar().showMessage( None )
 
     def show_open_gif_dialog( self ):
         """Open GIF file and load it to GIF player."""
@@ -317,7 +317,7 @@ class MagicBoxGui( QtGui.QMainWindow ):
             self.load_gif( gif_name )
 
     def update_status_bar_gif_progress( self, text ):
-        self.statusBar( ).showMessage( text )
+        self.statusBar().showMessage( text )
 
     def reset_parameters( self ):
         """Reset custom parameters, does not clear opened video."""
@@ -353,17 +353,17 @@ class MagicBoxGui( QtGui.QMainWindow ):
 
         if self.loaded_gif:
             # Resize loaded_gif according to gif_player's size.
-            size = self.central_widget.gif_player.size( )
+            size = self.central_widget.gif_player.size()
             self.resize_loaded_gif( size )
 
     def generate_gif( self ):
         """Generate GIF animation using provided parameters"""
-        if self.magic_box.info.is_valid( ):
+        if self.magic_box.info.is_valid():
             if self.loaded_gif:
                 # Close opened gif.
-                self.loaded_gif.setFileName( QtCore.QString( ) )
+                self.loaded_gif.setFileName( QtCore.QString() )
 
-            self.magic_box.make_clip( )
+            self.magic_box.make_clip()
             gif_name = QtGui.QFileDialog.getSaveFileName(
                 self, 'Save GIF File', self.last_gif_dir,
                 "GIF (*.gif)" )
@@ -379,16 +379,16 @@ class MagicBoxGui( QtGui.QMainWindow ):
         """Load GIF file and fit its size to gif_player's size.
         GIF progress is displayed in status bar.
         """
-        self.loaded_gif = QtGui.QMovie( )
+        self.loaded_gif = QtGui.QMovie()
         self.loaded_gif.setFileName( gif_name )
 
-        player_size = self.central_widget.gif_player.size( )
+        player_size = self.central_widget.gif_player.size()
         self.central_widget.gif_player.setMovie( self.loaded_gif )
 
         self.loaded_gif.frameChanged.connect(
             self.update_status_bar_frame_number )
 
-        self.loaded_gif.start( )
+        self.loaded_gif.start()
         self.resize_loaded_gif( player_size )
 
     def resize_loaded_gif( self, size ):
@@ -396,12 +396,12 @@ class MagicBoxGui( QtGui.QMainWindow ):
         its aspect ratio unchanged.
         """
         movie = self.loaded_gif
-        snapshot = movie.currentImage( )
-        current_size = snapshot.size( )
-        current_width = float( current_size.width( ) )
-        current_height = float( current_size.height( ) )
-        screen_width = float( size.width( ) )
-        screen_height = float( size.height( ) )
+        snapshot = movie.currentImage()
+        current_size = snapshot.size()
+        current_width = float( current_size.width() )
+        current_height = float( current_size.height() )
+        screen_width = float( size.width() )
+        screen_height = float( size.height() )
 
         if screen_height / screen_width > current_height / current_width:
             # Need to scale by screen width
@@ -417,12 +417,12 @@ class MagicBoxGui( QtGui.QMainWindow ):
         """Show GIF animation progress in status bar."""
         # Frame number starts from 0.
         message = 'Frame: {frame}/{total_frame}'.format(
-            frame=frame + 1, total_frame=self.loaded_gif.frameCount( ) )
-        self.statusBar( ).showMessage( message )
+            frame=frame + 1, total_frame=self.loaded_gif.frameCount() )
+        self.statusBar().showMessage( message )
 
     def play_loaded_gif( self ):
         if self.loaded_gif:
-            self.loaded_gif.start( )
+            self.loaded_gif.start()
 
     def pause_loaded_gif( self ):
         if self.loaded_gif:
@@ -430,11 +430,11 @@ class MagicBoxGui( QtGui.QMainWindow ):
 
     def stop_loaded_gif( self ):
         if self.loaded_gif:
-            self.loaded_gif.stop( )
+            self.loaded_gif.stop()
 
     def next_frame_loaded_gif( self ):
         if self.loaded_gif:
-            self.loaded_gif.jumpToNextFrame( )
+            self.loaded_gif.jumpToNextFrame()
 
     def handle_start_change( self, start ):
         """Triggered when central_widget.start_input changes."""
@@ -450,7 +450,7 @@ class MagicBoxGui( QtGui.QMainWindow ):
         """Triggered when central_widget.width_input changes."""
         if width:
             self.magic_box.info.update_width( width )
-            if not self.central_widget.height_input.text( ) and \
+            if not self.central_widget.height_input.text() and \
                     self.magic_box.info.video:
                 # Update height if its input is empty and there is video opened
                 height = float( width ) / self.magic_box.info.original_size[ 0 ] \
@@ -461,7 +461,7 @@ class MagicBoxGui( QtGui.QMainWindow ):
         """Triggered when central_widget.height_input changes."""
         if height:
             self.magic_box.info.update_height( height )
-            if not self.central_widget.width_input.text( ) and \
+            if not self.central_widget.width_input.text() and \
                     self.magic_box.info.video:
                 # Update width if its input is empty and there is video opened
                 width = float( height ) / self.magic_box.info.original_size[ 1 ] \
@@ -524,7 +524,7 @@ class MagicBoxCentralWidget( QtGui.QWidget, Ui_Form ):
     """
 
     def __init__( self ):
-        super( MagicBoxCentralWidget, self ).__init__( )
+        super( MagicBoxCentralWidget, self ).__init__()
         # ALternative: Use .ui file - uic.loadUi('central_widget.ui', self)
         self.setupUi( self )
 
@@ -536,9 +536,9 @@ def main( argv ):
     # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(gifer_id)
 
     app = QtGui.QApplication( argv )
-    mb = MagicBoxGui( )
+    mb = MagicBoxGui()
 
-    sys.exit( app.exec_( ) )
+    sys.exit( app.exec_() )
 
 
 if __name__ == '__main__':
