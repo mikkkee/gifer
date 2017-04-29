@@ -1,18 +1,17 @@
 __author__ = 'Jianfeng'
 
-import sys
 import os
+import sys
 
+import moviepy.video.fx.all as afx
 from PyQt4 import QtGui, QtCore
 from moviepy.editor import *
-import moviepy.video.fx.all as afx
 
 from resources.central_widget_ui import Ui_Form
 import resources.icon
 
-
 class Info(object):
-    """Info object used to hold custom parameters to make GIF animation."""
+    """ Info object used to hold custom parameters to make GIF animation. """
     def __init__(self):
         # Video name.
         self.video = None
@@ -48,7 +47,7 @@ class Info(object):
 
     def update_video(self, name):
         """Update the video to process."""
-        assert isinstance(name, str)
+        assert isinstance( name, unicode )
         self.video = name
 
     def update_start(self, start=None):
@@ -263,37 +262,46 @@ class MagicBoxGui(QtGui.QMainWindow):
         video_name = QtGui.QFileDialog.getOpenFileName(
             self, 'Open Video File', self.last_video_dir)
 
+        video_name = unicode( video_name )
+
         if not video_name:
             # In case user closed open file dialog without doing anything.
             return
 
         # Update last_video_dir for next use.
-        self.last_video_dir = QtCore.QString(os.path.dirname(str(video_name)))
+        self.last_video_dir = QtCore.QString( os.path.dirname( video_name ) )
 
         # Update movie name in statusBar.
-        msg = 'Selected: {name}'.format(name=video_name)
+        msg = u'Selected: {name}'.format( name=video_name )
         self.statusBar().showMessage(msg)
 
-        # Update video info, resolution, duration, fps, from VideoFileClip().
-        self.magic_box.info.update_video(str(video_name))
-        self.magic_box.clip = VideoFileClip(str(video_name))
+        try:
+            # Update video info, resolution, duration, fps, from VideoFileClip().
+            self.magic_box.info.update_video( video_name )
+            self.magic_box.clip = VideoFileClip( video_name )
+            width, height = self.magic_box.clip.size
+            duration = self.magic_box.clip.duration
+            fps = self.magic_box.clip.fps
 
-        width, height = self.magic_box.clip.size
-        duration = self.magic_box.clip.duration
-        fps = self.magic_box.clip.fps
+            self.magic_box.info.original_duration = duration
+            self.magic_box.info.original_size = (width, height)
+            self.magic_box.info.original_fps = fps
 
-        self.magic_box.info.original_duration = duration
-        self.magic_box.info.original_size = (width, height)
-        self.magic_box.info.original_fps = fps
-
-        # Update video info in main window.
-        self.central_widget.video_file_input.setText(str(video_name))
-        self.central_widget.start_input.setText('0.0')
-        self.central_widget.end_input.setText(str(duration))
-        self.central_widget.width_input.setText(str(width))
-        self.central_widget.height_input.setText(str(height))
-        self.central_widget.fps_input.setText(str(fps))
-        self.central_widget.speed_input.setText('1.0')
+            # Update video info in main window.
+            self.central_widget.video_file_input.setText( video_name )
+            self.central_widget.start_input.setText('0.0')
+            self.central_widget.end_input.setText(str(duration))
+            self.central_widget.width_input.setText(str(width))
+            self.central_widget.height_input.setText(str(height))
+            self.central_widget.fps_input.setText(str(fps))
+            self.central_widget.speed_input.setText('1.0')
+        except UnicodeEncodeError:
+            # Bug of Python 2.X on Windows, subprocess.call fails with unicode input.
+            # See https://bugs.python.org/issue1759845 for more details.
+            err_msg = u"Due to a Python 2.X bug on Windows, unicode in file name {} is not supported".format( video_name )
+            err_box = QtGui.QErrorMessage()
+            err_box.showMessage( err_msg )
+            self.statusBar( ).showMessage( None )
 
     def show_open_gif_dialog(self):
         """Open GIF file and load it to GIF player."""
@@ -531,10 +539,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
-
-
-
-
-
-
+    main( sys.argv )

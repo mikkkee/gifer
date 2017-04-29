@@ -13,7 +13,8 @@ import gifer
 # __FRESH__ to True. Set __FRESH__ to False only if you have manually
 # changed MoviePy using scripts/make_movie_py_static.py and
 # scripts/rm_matplot_lib_dependency_in_moviepy.py .
-__FRESH__ = False
+__FRESH__ = True
+__DEBUG__ = True
 
 # Do exclude matplotlib data files if matplotlib exists.
 try:
@@ -115,6 +116,7 @@ def restore_moviepy():
 def build_exe(spec_file):
     """Build exe using PyInstaller and spec_file."""
     print("Building executable.")
+    spec_file = spec_file if not __DEBUG__ else '-F gifer.py'
     call('pyinstaller {spec}'.format(spec=spec_file).split())
 
 
