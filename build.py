@@ -41,8 +41,7 @@ def write_spec_file( spec_name ):
 
     # Modules to exclude.
     _ex_modules = [ 'PySide', 'IPython', 'matplotlib', 'scipy', 'pydoc', 'ssl' ]
-    _ex_fmt = "a.binaries = \
-[x for x in a.binaries if not x[0].startswith('{m}')]\n"
+    _ex_fmt = "a.binaries = [x for x in a.binaries if not x[0].startswith('{m}')]\n"
 
     for module in _ex_modules:
         spec.write( _ex_fmt.format( m=module ) )
@@ -60,8 +59,7 @@ def write_spec_file( spec_name ):
     # Delete MatplotLib data
     if __mpl__:
         _mpl_dir = os.path.dirname( mpl.__file__ )
-        _mpl_fmt = "a.datas = [x for x in a.datas if \
-os.path.dirname(x[1]).startswith('{mpl_dir}')]\n\n"
+        _mpl_fmt = "a.datas = [x for x in a.datas if os.path.dirname(x[1]).startswith('{mpl_dir}')]\n\n"
         spec.write( _mpl_fmt.format( mpl_dir=_mpl_dir ) )
 
     # Write pyz / exe options
@@ -75,7 +73,7 @@ os.path.dirname(x[1]).startswith('{mpl_dir}')]\n\n"
         debug=False,\n\
         strip=None,\n\
         upx=True,\n\
-        console=False,\n\
+        console={console},\n\
         icon='{icon}')\n"
 
     _exe_name = 'gifer'
@@ -84,7 +82,7 @@ os.path.dirname(x[1]).startswith('{mpl_dir}')]\n\n"
         _exe_name += '.exe'
         _icon_path = _icon_path.replace( '/', '\\' )
 
-    spec.write( _exe_fmt.format( exe=_exe_name, icon=_icon_path ) )
+    spec.write( _exe_fmt.format( exe=_exe_name, console=__DEBUG__, icon=_icon_path ) )
 
 
 def make_moviepy_static( ):
@@ -120,7 +118,7 @@ def restore_moviepy( ):
 def build_exe( spec_file ):
     """Build exe using PyInstaller and spec_file."""
     print( "Building executable." )
-    spec_file = spec_file if not __DEBUG__ else '-F gifer.py'
+    # spec_file = spec_file if not __DEBUG__ else '-F gifer.py'
     call( 'pyinstaller {spec}'.format( spec=spec_file ).split( ) )
 
 

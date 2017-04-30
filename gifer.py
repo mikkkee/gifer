@@ -1,11 +1,15 @@
 __author__ = 'Jianfeng'
 
+import logging
 import os
+import re
+import stat
+import subprocess as sp
 import sys
 
-import moviepy.video.fx.all as afx
-from PyQt4 import QtGui, QtCore
-from moviepy.editor import *
+from PyQt4 import QtCore, QtGui
+from imageio.core import InternetNotAllowedError, NeedDownloadError, get_platform, get_remote_file
+from imageio.plugins.ffmpeg import FNAME_PER_PLATFORM
 
 from resources.central_widget_ui import Ui_Form
 import resources.icon
@@ -103,10 +107,10 @@ class ConsoleCapture( QtCore.QObject ):
     """
 
     text_written = QtCore.pyqtSignal( str )
-    text_content = None
+    text_content = ''
 
     def write( self, text ):
-        self.text_content = text
+        self.text_content = self.text_content + text
         self.text_written.emit( self.text_content )
 
     def flush( self ):
@@ -117,6 +121,12 @@ class MagicBox( object ):
     """A magic box which can convert videos into GIF animations."""
 
     def __init__( self ):
+        from moviepy.editor import VideoFileClip
+        import moviepy.video.fx.all as afx
+
+        self.afx = afx
+        self.VideoFileClipCls = VideoFileClip
+
         self.clip = None
         self._original_clip = None
         self.info = Info()
@@ -124,7 +134,7 @@ class MagicBox( object ):
     def make_clip( self ):
         """Customize clip according to parameters in self.info"""
         # Init from video file.
-        self.clip = VideoFileClip( self.info.video )
+        self.clip = self.VideoFileClipCls( self.info.video )
         # Create sub-clip.
         self.clip = self.clip.subclip( self.info.start, self.info.end )
         # Resize clip.
@@ -139,7 +149,7 @@ class MagicBox( object ):
     def save_gif( self, name ):
         """Write VideoClip to a GIF file."""
         if self.info.mirrored:
-            self.clip = afx.time_symmetrize( self.clip )
+            self.clip = self.afx.time_symmetrize( self.clip )
         self.clip.write_gif( name, fps=self.info.fps )
 
 
@@ -147,24 +157,28 @@ class MagicBoxGui( QtGui.QMainWindow ):
     """GUI for MagicBox."""
 
     def __init__( self ):
-        super( MagicBoxGui, self ).__init__()
+        super( MagicBoxGui, self ).__init__( )
+
+        from moviepy.editor import VideoFileClip
+        self.VideoFileClipCls = VideoFileClip
+
         # MagicBox() does all editing / writing things.
-        self.magic_box = MagicBox()
+        self.magic_box = MagicBox( )
         # CentralWidget draw by QT Designer.
-        self.central_widget = MagicBoxCentralWidget()
+        self.central_widget = MagicBoxCentralWidget( )
         # GIF to be loaded in the player.
         self.loaded_gif = None
         # Last directory where user opened a video, default is current dir.
-        self.last_video_dir = QtCore.QString()
+        self.last_video_dir = QtCore.QString( )
         # Last directory where user saved a gif, default is current dir.
-        self.last_gif_dir = QtCore.QString()
+        self.last_gif_dir = QtCore.QString( )
         # Change sys.stdout to capture MoviePy output.
         # sys.stdout = ConsoleCapture(
         #     text_written=self.update_status_bar_gif_progress)
         # Set window icon.
         self.setWindowIcon( QtGui.QIcon( ':/images/logo_tray.png' ) )
 
-        self.init_ui()
+        self.init_ui( )
 
     def __del__( self ):
         """Restore sys.stdout"""
@@ -280,7 +294,7 @@ class MagicBoxGui( QtGui.QMainWindow ):
         try:
             # Update video info, resolution, duration, fps, from VideoFileClip().
             self.magic_box.info.update_video( video_name )
-            self.magic_box.clip = VideoFileClip( video_name )
+            self.magic_box.clip = self.VideoFileClipCls( video_name )
             width, height = self.magic_box.clip.size
             duration = self.magic_box.clip.duration
             fps = self.magic_box.clip.fps
@@ -370,10 +384,10 @@ class MagicBoxGui( QtGui.QMainWindow ):
 
             if gif_name:
                 self.last_gif_dir = QtCore.QString(
-                    os.path.dirname( str( gif_name ) ) )
-                self.magic_box.save_gif( str( gif_name ) )
+                    os.path.dirname( unicode( gif_name ) ) )
+                self.magic_box.save_gif( unicode( gif_name ) )
                 # Open GIF file after saved.
-                self.load_gif( str( gif_name ) )
+                self.load_gif( unicode( gif_name ) )
 
     def load_gif( self, gif_name ):
         """Load GIF file and fit its size to gif_player's size.
@@ -529,14 +543,163 @@ class MagicBoxCentralWidget( QtGui.QWidget, Ui_Form ):
         self.setupUi( self )
 
 
+class DownloadInfoCapturer( QtCore.QObject ):
+    """
+    Capture download info from stdout
+    """
+
+    text_written = QtCore.pyqtSignal( unicode )
+    _text_content = ''
+    percent = ''
+
+    def text_content(self):
+        if self.percent:
+            return ( self._text_content + '\n{}' ).format( self.percent )
+        else:
+            return self._text_content
+
+    def write( self, text ):
+        percent_pattern = r'(\(\d{1,3}\.\d%\))'
+        self.percent = re.search( percent_pattern, text )
+
+        if self.percent:
+            self.percent = self.percent.group()[ 1:-1 ]
+        else:
+            self.percent = ''
+
+            if not self._text_content.endswith( '\n' ):
+                self._text_content = '\n'.join( [ self.text_content(), text ] )
+            else:
+                self._text_content = self._text_content + text
+
+        self.text_written.emit( self.text_content() )
+
+    def flush( self ):
+        self.text_written.emit( self.text_content() )
+
+
+class DownloadThread( QtCore.QThread ):
+
+    def __int__(self):
+        QtCore.QThread.__init__( self )
+
+    def run( self ):
+        import sys
+        output = DownloadInfoCapturer( text_written=self.update_info )
+        sys.stdout = output
+        find_ffmpeg( auto=True )
+        self.emit( QtCore.SIGNAL( 'downloadFinished' ) )
+
+    def update_info( self, text ):
+        self.emit( QtCore.SIGNAL( 'hasOutput' ), text )
+
+    def __del__(self):
+        sys.stdout = sys.__stdout__
+
+
+class PreStartingWidget( QtGui.QWidget ):
+
+    def __init__( self, info ):
+        super( self.__class__, self ).__init__()
+
+        label_msg = 'ffmpeg is not found in your system.\nDo you want GIFer to download it for you (by using imageio.py)?'
+
+        font = QtGui.QFont()
+        font.setPointSize( 10 )
+
+        self.label = QtGui.QTextEdit()
+        self.label.setReadOnly( True )
+        self.label.setAlignment( QtCore.Qt.AlignVCenter )
+        self.label.setText( label_msg )
+        self.label.setFont( font )
+
+        self.yes_btn = QtGui.QPushButton( 'YES' )
+        self.no_btn  = QtGui.QPushButton( 'NO' )
+
+        self.yes_btn.clicked.connect( self.download_ffmpeg )
+        self.no_btn.clicked.connect( self.close )
+
+        vbox = QtGui.QVBoxLayout()
+        vbox.addWidget( self.label )
+        vbox.addWidget( self.yes_btn )
+        vbox.addWidget( self.no_btn )
+
+        self.setLayout( vbox )
+        self.setWindowTitle( info )
+        self.resize( 500, 400 )
+
+        self.thread = DownloadThread()
+        self.connect( self.thread, QtCore.SIGNAL("hasOutput"), self.label.setText )
+        self.connect( self.thread, QtCore.SIGNAL('downloadFinished'), self.download_finished )
+
+    def download_ffmpeg(self):
+        self.setWindowTitle( 'Downloading ffmpeg for you' )
+        self.label.setText( 'Downloading' )
+        self.thread.start()
+
+    def download_finished(self):
+        alert = QtGui.QMessageBox()
+        alert.setText( 'ffmpeg downloading completed. Please restart GIFer.' )
+        alert.setWindowTitle( 'Downloading Finished' )
+        alert.buttonClicked.connect( self.close )
+        self.setDisabled( True )
+        alert.exec_()
+
+    def __del__(self):
+        sys.stdout = sys.__stdout__
+
+
+def find_ffmpeg( auto=False ):
+    """ Get ffmpeg exe, modified from imageio.plugins.ffmpeg.get_exe """
+    # Is the ffmpeg exe overridden?
+    exe = os.getenv( 'IMAGEIO_FFMPEG_EXE', None )
+    if exe:  # pragma: no cover
+        return exe
+
+    # Check if ffmpeg is in PATH
+    try:
+        with open( os.devnull, "w" ) as null:
+            sp.check_call( [ "ffmpeg", "-version" ], stdout=null,
+                           stderr=sp.STDOUT )
+            return "ffmpeg"
+    # ValueError is raised on failure on OS X through Python 2.7.11
+    # https://bugs.python.org/issue26083
+    except (OSError, ValueError, sp.CalledProcessError):
+        pass
+
+    plat = get_platform( )
+
+    if plat and plat in FNAME_PER_PLATFORM:
+        try:
+            exe = get_remote_file( 'ffmpeg/' + FNAME_PER_PLATFORM[ plat ],
+                                   auto=auto )
+            os.chmod( exe, os.stat( exe ).st_mode | stat.S_IEXEC )  # executable
+            return exe
+        except NeedDownloadError:
+            raise NeedDownloadError( 'Need ffmpeg exe. '
+                                     'You can download it by calling:\n'
+                                     '  imageio.plugins.ffmpeg.download()' )
+        except InternetNotAllowedError:
+            pass  # explicitly disallowed by user
+        except OSError as err:  # pragma: no cover
+            logging.warning( "Warning: could not find imageio's "
+                             "ffmpeg executable:\n%s" %
+                             str( err ) )
+
+    # Fallback, let's hope the system has ffmpeg
+    return 'ffmpeg'
+
+
 def main( argv ):
-    # Explicitly tell Windows to use the correct AppUserModelID instead of
-    # Python's AppUserModelID.
-    # gifer_id = 'lazzyrabbit.gifer.v0.1' # arbitrary string
-    # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(gifer_id)
 
     app = QtGui.QApplication( argv )
-    mb = MagicBoxGui()
+
+    try:
+        find_ffmpeg( auto=False )
+        _mb = MagicBoxGui( )
+    except NeedDownloadError:
+        info_box = PreStartingWidget( 'Checking ffmpeg on your system' )
+        info_box.show()
 
     sys.exit( app.exec_() )
 
