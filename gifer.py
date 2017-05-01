@@ -559,10 +559,8 @@ class DownloadThread( QtCore.QThread ):
 
     def __int__(self):
         QtCore.QThread.__init__( self )
-        self.STARTED = False
 
     def run( self ):
-        self.STARTED = True
         import sys
         output     = DownloadInfoCapturer( text_written=self.update_info )
         sys.stdout = output
