@@ -13,76 +13,146 @@ import gifer
 # changed MoviePy using scripts/make_movie_py_static.py and
 # scripts/rm_matplot_lib_dependency_in_moviepy.py .
 __FRESH__ = True
-__DEBUG__ = True
 
-# Do exclude matplotlib data files if matplotlib exists.
-try:
-    import matplotlib as mpl
+__DEBUG__ = True # build using one-folder option of PyInstaller
 
-    __mpl__ = True
-except ImportError:
-    __mpl__ = False
+ICON_PATH = 'images/logo_tray.ico'
+ICON_PATH = ICON_PATH.replace( '/', '\\' ) if os.name == 'nt' else ICON_PATH
+EXE_NAME  = 'gifer.exe' if os.name == 'nt' else 'gifer'
+MODULES_TO_EXCLUDE = [
+                        'Cython',
+                        'IPython',
+                        'PySide',
+                        '_xmlplus',
+                        'alabaster',
+                        'astropy',
+                        'babel',
+                        'boto',
+                        'bottleneck',
+                        'bsddb',
+                        'bz2',
+                        'cdecimal',
+                        'certifi',
+                        'cffi',
+                        'cryptography',
+                        'cytoolz',
+                        'docutils',
+                        'elementtree',
+                        'gevent',
+                        'greenlet',
+                        'h5py',
+                        'lib2to3',
+                        'lxml',
+                        'matplotlib',
+                        'openpyxl',
+                        'pandas',
+                        'pydoc',
+                        'pytz',
+                        'requests',
+                        'scipy',
+                        'skimage',
+                        'sphinx',
+                        'sqlalchemy',
+                        'sqlite3',
+                        'tabels',
+                        'tcl',
+                        'tkinter',
+                        'tornado',
+                        'win32sysloader',
+                        'win32ui',
+                        'zmq' ]
 
 
-def write_spec_file( spec_name ):
-    """Write build options to spec file."""
+def write_spec_file( spec_name, debug=False ):
+    """ Write build options to spec file. """
+    lines = []
 
-    spec = open( spec_name, 'w' )
+    exclude_line = 'modules_to_exclude = {}\n'.format( MODULES_TO_EXCLUDE )
+    lines.append( exclude_line )
 
-    # Init Analysis() Object.
-    _gifer_dir = os.path.dirname( gifer.__file__ )
+    unused_bin_lines = "def is_unused_binary( name ):\n" \
+                       "    to_exclude = [ 'libeay32.dll' ]\n" \
+                       "    if name.startswith( 'mkl' ):\n" \
+                       "        if name.startswith( 'mkl_core' ) or name.startswith( 'mkl_intel_thread' ):\n" \
+                       "            return False\n" \
+                       "        return True\n" \
+                       "    elif name in to_exclude:\n" \
+                       "        return True\n" \
+                       "    else:\n" \
+                       "        return False\n"
+    lines.append( unused_bin_lines )
 
-    spec.write(
-        "a = Analysis(['gifer.py'],\n\
-            pathex=['{gifer}'], \n\
-            hiddenimports=[], hookspath=None, \n\
-            runtime_hooks=None)\n\n".format( gifer=_gifer_dir )
-    )
+    params_line = "block_cipher = None\n"
+    lines.append( params_line )
 
-    # Modules to exclude.
-    _ex_modules = [ 'PySide', 'IPython', 'matplotlib', 'scipy', 'pydoc', 'ssl' ]
-    _ex_fmt = "a.binaries = [x for x in a.binaries if not x[0].startswith('{m}')]\n"
+    analysis_lines = [ "a = Analysis(['gifer.py'], ",
+                         "pathex=['{gifer_dir}'], ",
+                         "binaries=[],",
+                         "datas=[],",
+                         "hiddenimports=[],",
+                         "hookspath=[],",
+                         "runtime_hooks=[],",
+                         "excludes=modules_to_exclude,",
+                         "win_no_prefer_redirects=False,",
+                         "win_private_assemblies=False,",
+                         "cipher=block_cipher)\n", ]
+    analysis_line = '\n'.join( analysis_lines )
+    lines.append( analysis_line )
 
-    for module in _ex_modules:
-        spec.write( _ex_fmt.format( m=module ) )
-    spec.write( '\n' )
+    binaries_lines = [ "a.binaries = a.binaries - TOC([",
+        "('mfc90.dll', '', ''),",
+        "('libmmd.dll', '', ''),",
+        "('svml_dispmd.dll', '', ''),",
+        "('sqlite3.dll', '', ''),",
+        "('tcl85.dll', '', ''),",
+        "('tk85.dll', '', ''),",
+        "('_sqlite3', '', ''),",
+        "('_tkinter', '', '')])\n",
+        "a.binaries = [ x for x in a.binaries if not is_unused_binary( x[ 0 ] ) ]\n", ]
+    binaries_line = '\n'.join( binaries_lines )
+    lines.append( binaries_line )
 
-    # Remove specific files.
-    spec.write( """a.binaries = a.binaries - TOC([
-        ('sqlite3.dll', '', ''),
-        ('tcl85.dll', '', ''),
-        ('tk85.dll', '', ''),
-        ('_sqlite3', '', ''),
-        ('_ssl', '', ''),
-        ('_tkinter', '', '')])\n\n""" )
+    pyz_line = "pyz = PYZ( a.pure, a.zipped_data, cipher=block_cipher )\n"
+    lines.append( pyz_line )
 
-    # Delete MatplotLib data
-    if __mpl__:
-        _mpl_dir = os.path.dirname( mpl.__file__ )
-        _mpl_fmt = "a.datas = [x for x in a.datas if os.path.dirname(x[1]).startswith('{mpl_dir}')]\n\n"
-        spec.write( _mpl_fmt.format( mpl_dir=_mpl_dir ) )
+    if debug:
+        exe_lines = [ "exe = EXE(pyz,",
+                      "a.scripts,",
+                      "exclude_binaries=True,",
+                      "name='gifer',",
+                      "debug=False,",
+                      "strip=False,",
+                      "upx=True,",
+                      "console=True )\n", ]
+        exe_line = '\n'.join( exe_lines )
+        lines.append( exe_line )
 
-    # Write pyz / exe options
-    spec.write( 'pyz = PYZ(a.pure)\n' )
-    _exe_fmt = "exe = EXE(pyz,\n\
-        a.scripts,\n\
-        a.binaries,\n\
-        a.zipfiles,\n\
-        a.datas,\n\
-        name='{exe}',\n\
-        debug=False,\n\
-        strip=None,\n\
-        upx=True,\n\
-        console={console},\n\
-        icon='{icon}')\n"
+        coll_lines = [ "COLLECT(exe,",
+                       "a.binaries,",
+                       "a.zipfiles,",
+                       "a.datas,",
+                       "strip=False,",
+                       "upx=True,",
+                       "name='gifer')\n", ]
+        coll_line = '\n'.join( coll_lines )
+        lines.append( coll_line )
+    else:
+        exe_lines = [ "exe = EXE(pyz,",
+                      "a.scripts,",
+                      "a.binaries,",
+                      "a.zipfiles,",
+                      "a.datas,",
+                      "name='{}',".format( EXE_NAME ),
+                      "debug=False,",
+                      "strip=False,",
+                      "upx=True,",
+                      "console=False,",
+                      "icon='{}' )\n".format( ICON_PATH ), ]
+        exe_line = '\n'.join( exe_lines )
+        lines.append( exe_line )
 
-    _exe_name = 'gifer'
-    _icon_path = 'images/logo_tray.ico'
-    if platform.platform( ).startswith( 'Windows' ):
-        _exe_name += '.exe'
-        _icon_path = _icon_path.replace( '/', '\\' )
-
-    spec.write( _exe_fmt.format( exe=_exe_name, console=__DEBUG__, icon=_icon_path ) )
+    with open( spec_name, 'w' ) as spec:
+        spec.write( '\n'.join( lines ) )
 
 
 def make_moviepy_static( ):
@@ -116,17 +186,17 @@ def restore_moviepy( ):
 
 
 def build_exe( spec_file ):
-    """Build exe using PyInstaller and spec_file."""
+    """ Build exe using PyInstaller and spec_file. """
     print( "Building executable." )
-    # spec_file = spec_file if not __DEBUG__ else '-F gifer.py'
     call( 'pyinstaller {spec}'.format( spec=spec_file ).split( ) )
 
 
-def main( ):
+def main():
     global __FRESH__
+    global __DEBUG__
 
-    _spec_file = 'build.spec'
-    write_spec_file( _spec_file )
+    spec_file = 'build.spec'
+    write_spec_file( spec_file, debug=__DEBUG__ )
 
     if __FRESH__:
         # MoviePy is fresh.
@@ -134,11 +204,11 @@ def main( ):
         rm_matplotlib_dependency_in_moviepy( )
 
     os.chdir( os.path.dirname( gifer.__file__ ) )
-    build_exe( _spec_file )
+    build_exe( spec_file )
 
     if __FRESH__:
         restore_moviepy( )
 
 
 if __name__ == '__main__':
-    main( )
+    main()
