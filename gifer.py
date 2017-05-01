@@ -559,8 +559,10 @@ class DownloadThread( QtCore.QThread ):
 
     def __int__(self):
         QtCore.QThread.__init__( self )
+        self.STARTED = False
 
     def run( self ):
+        self.STARTED = True
         import sys
         output     = DownloadInfoCapturer( text_written=self.update_info )
         sys.stdout = output
@@ -593,11 +595,13 @@ class PreStartingWidget( QtGui.QWidget ):
         self.label.setText( label_msg )
         self.label.setFont( font )
 
-        self.yes_btn = QtGui.QPushButton( 'YES' )
-        self.no_btn  = QtGui.QPushButton( 'NO' )
+        self.yes_text = 'Download'
+        self.no_text  = [ 'Exit', 'Stop Downloading' ]
+        self.yes_btn  = QtGui.QPushButton( self.yes_text )
+        self.no_btn   = QtGui.QPushButton( self.no_text[ 0 ] )
 
         self.yes_btn.clicked.connect( self.download_ffmpeg )
-        self.no_btn.clicked.connect( self.close )
+        self.no_btn.clicked.connect( self.stop_download_or_exit )
 
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget( self.label )
@@ -616,14 +620,26 @@ class PreStartingWidget( QtGui.QWidget ):
         self.setWindowTitle( 'GIFer - Downloading ffmpeg for you' )
         self.label.setText( 'Downloading' )
         self.thread.start()
+        self.yes_btn.setDisabled( True )
+        self.no_btn.setText( self.no_text[ 1 ] )
 
     def download_finished(self):
         alert = QtGui.QMessageBox()
-        alert.setText( 'ffmpeg downloaded. Please restart GIFer.' )
+        alert.setText( "ffmpeg downloaded. Please restart GIFer." )
         alert.setWindowTitle( 'Download Finished' )
         alert.buttonClicked.connect( self.close )
         self.setDisabled( True )
         alert.exec_()
+
+    def stop_download_or_exit(self):
+        if self.thread.isRunning():
+            self.thread.terminate()
+            self.thread.wait()
+            self.yes_btn.setDisabled( False )
+            self.no_btn.setText( self.no_text[ 0 ] )
+        else:
+            self.close()
+
 
     def __del__(self):
         sys.stdout = sys.__stdout__
