@@ -13,6 +13,7 @@ Screenshot on start.
 
 ## ToDo
 
+- Make GIFer in a seperate thread
 - Crop on screen
 - Preview of Video
 
@@ -56,17 +57,19 @@ The GUI is made using [PyQt4](http://www.riverbankcomputing.com/software/pyqt/do
 PIL (Python Imaging Library) is required to resize GIF animation.
 
 ##### Install Requirements
+
+###### Install PyQt4
+
 1. Install [SIP](http://www.riverbankcomputing.com/software/sip/download).
 2. Install [PyQt4](http://www.riverbankcomputing.com/software/pyqt/download).
+
+The compilation of PyQ4 and SIP may be buggy on Windows. You can choose to 
+install [Anaconda](https://www.continuum.io/downloads) instead.
+
 3. Install MoviePy, `pip install moviepy`.
 4. Install [Pillow](http://pillow.readthedocs.org/en/latest/) (A PIL branch, 
    recommended), `pip install Pillow`.
    
-###### Install PyQt4 On Windows with `virtualenv`
-
-1. Install Anaconda
-2. Copy PyQt4 directory from `C:\Anaconda\pkgs\pyqt-[version]-py27_1\Lib\site-packages\PyQt4`
-   into the `site-packages` folder of `virtualenv`.
 
 #### Run From Source
 You don't need to pack GIFer into a executable to play with it.
@@ -87,18 +90,9 @@ building. After this, just run:
 
 in the same directory of `gifer.py`.
 
-#### Debug
-GIFer captures console output to display message on its UI; you need to stop
-this capturing behavior to see error traceback codes.
+#### Contribute
 
-Comment out
-```python
-sys.stdout = ConsoleCapture(
-              text_written=self.update_status_bar_gif_progress)
-```
-in `gifer.py` to stop GIFer from capturing console outputs. Remember to restore
-this change after you've done your debugging, or GIFer will not be able to
-display animation creating progress.
+Fork [GIFer](https://github.com/mikkkee/gifer#fork-destination-box) now~
 
 
 ## Icon Credit
