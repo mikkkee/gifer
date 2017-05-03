@@ -1,6 +1,8 @@
-"""Generate spec file used by PyInstaller and build executable file
+"""
+Generate spec file used by PyInstaller and build executable file
 with it.
-Todo: Add platform support for OS X and Linux"""
+Todo: Add platform support for OS X and Linux
+"""
 from __future__ import print_function
 import os
 import platform
@@ -14,7 +16,7 @@ import gifer
 # scripts/rm_matplot_lib_dependency_in_moviepy.py .
 __FRESH__ = True
 
-__DEBUG__ = True # build using one-folder option of PyInstaller
+__DEBUG__ = False # build using one-folder option of PyInstaller
 
 ICON_PATH = 'images/logo_tray.ico'
 ICON_PATH = ICON_PATH.replace( '/', '\\' ) if os.name == 'nt' else ICON_PATH

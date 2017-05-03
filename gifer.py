@@ -1,5 +1,3 @@
-__author__ = 'Jianfeng'
-
 import logging
 import os
 import re
