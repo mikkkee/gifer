@@ -97,27 +97,63 @@ class Info( object ):
             self.mirrored = mirrored
 
 
-class ConsoleCapture( QtCore.QObject ):
-    """Act as sys.stdout to capture console output.
-    Here this Class is used to capture MoviePy output and show the message
-    on status bar.
+class ProgressCapture( QtCore.QObject ):
     """
-
+    Class to capture console output when making GIF using moviepy.
+    The progress info is parsed from the output and sent to main thread.
+    """
     text_written = QtCore.pyqtSignal( str )
     text_content = ''
 
     def write( self, text ):
-        self.text_content = self.text_content + text
+        self.text_content = text
         self.text_written.emit( self.text_content )
 
     def flush( self ):
         self.text_written.emit( self.text_content )
 
 
-class MagicBox( object ):
+class GIFMakingThread( QtCore.QThread ):
+
+    def __init__( self, params ):
+        # Init with params to make GIF
+        QtCore.QThread.__init__( self )
+        self.params = params
+
+    def run( self ):
+        import sys
+        output     = ProgressCapture( text_written=self.update_progress )
+        sys.stdout = output
+        clip = self.make_gif()
+        self.emit( QtCore.SIGNAL( 'GIF_making_finished' ), clip )
+
+    def make_gif( self ):
+        video_name = self.params[ 'video_name' ]
+        start      = self.params[ 'start' ]
+        end        = self.params[ 'end' ]
+        scale      = self.params[ 'scale' ]
+        size       = self.params[ 'size' ]
+        speed      = self.params[ 'speed' ]
+        from moviepy.editor import VideoFileClip
+        clip = VideoFileClip( video_name )
+        clip = clip.subclip( start, end )
+        clip = clip.resize( scale if scale else size )
+        if speed:
+            clip = clip.speedx( speed )
+        return clip
+
+    def update_progress( self, progress ):
+        """ Send progress signal """
+        self.emit( QtCore.SIGNAL( 'GIF_making_progress' ), progress )
+
+
+class MagicBox( QtCore.QObject ):
     """ A magic box which can convert videos into GIF animations. """
 
-    def __init__( self ):
+    progress_signal = QtCore.pyqtSignal( str )
+
+    def __init__( self, **kwargs ):
+        super( self.__class__, self ).__init__( **kwargs )
         from moviepy.editor import VideoFileClip
         import moviepy.video.fx.all
 
@@ -128,8 +164,11 @@ class MagicBox( object ):
         self._original_clip = None
         self.info           = Info()
 
+        self.GIF_maker_thread = None
+
     def make_clip( self ):
         """ Customize clip according to parameters in self.info """
+        """
         # Init from video file.
         self.clip = self.VideoFileClipCls( self.info.video )
         # Create sub-clip.
@@ -142,12 +181,29 @@ class MagicBox( object ):
         # Change play speed.
         if self.info.speed:
             self.clip = self.clip.speedx( self.info.speed )
+        """
+        params = { 'video_name': self.info.video,
+                        'start': self.info.start,
+                          'end': self.info.end,
+                        'scale': self.info.scale,
+                         'size': self.info.size,
+                        'speed': self.info.speed, }
+        self.GIF_maker_thread = GIFMakingThread( params )
+        self.connect( self.GIF_maker_thread, QtCore.SIGNAL( 'GIF_making_progress' ), self.update_progress )
+        self.connect( self.GIF_maker_thread, QtCore.SIGNAL( 'GIF_making_finished' ), self.update_clip )
+        self.GIF_maker_thread.run()
 
     def save_gif( self, name ):
         """ Write VideoClip to a GIF file. """
         if self.info.mirrored:
             self.clip = self.afx.time_symmetrize( self.clip )
         self.clip.write_gif( name, fps=self.info.fps )
+
+    def update_clip( self, clip ):
+        self.clip = clip
+
+    def update_progress( self, progress ):
+        self.progress_signal.emit( progress )
 
 
 class MagicBoxGui( QtGui.QMainWindow ):
@@ -160,7 +216,7 @@ class MagicBoxGui( QtGui.QMainWindow ):
         self.VideoFileClipCls = VideoFileClip
 
         # MagicBox() does all editing / writing things.
-        self.magic_box      = MagicBox()
+        self.magic_box      = MagicBox( progress_signal=self.update_status_bar_gif_progress )
         # CentralWidget draw by QT Designer.
         self.central_widget = MagicBoxCentralWidget()
         # GIF to be loaded in the player.
@@ -578,7 +634,7 @@ class PreStartingWidget( QtGui.QWidget ):
     def __init__( self, info ):
         super( self.__class__, self ).__init__()
 
-        label_msg = 'ffmpeg is not found in your system.\n'\
+        label_msg = 'ffmpeg is not found in your system.\n' \
                     'GIFer will not work without ffmpeg.\n' \
                     'Do you want GIFer to download it for you (from github.com)?\n'
 
