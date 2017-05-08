@@ -115,17 +115,19 @@ class ProgressCapture( QtCore.QObject ):
 
 class GIFMakingThread( QtCore.QThread ):
 
-    def __init__( self, params ):
+    def __init__( self ):
         # Init with params to make GIF
         QtCore.QThread.__init__( self )
+        self.params = None
+
+    def set_params( self, params ):
         self.params = params
 
     def run( self ):
         import sys
         output     = ProgressCapture( text_written=self.update_progress )
         sys.stdout = output
-        clip = self.make_gif()
-        self.emit( QtCore.SIGNAL( 'GIF_making_finished' ), clip )
+        self.make_gif()
 
     def make_gif( self ):
         video_name = self.params[ 'video_name' ]
@@ -134,13 +136,20 @@ class GIFMakingThread( QtCore.QThread ):
         scale      = self.params[ 'scale' ]
         size       = self.params[ 'size' ]
         speed      = self.params[ 'speed' ]
+        mirrored   = self.params[ 'mirrored' ]
+        fps        = self.params[ 'fps' ]
+        gif_name   = self.params[ 'gif_name' ]
         from moviepy.editor import VideoFileClip
+        import moviepy.video.fx.all as afx
         clip = VideoFileClip( video_name )
         clip = clip.subclip( start, end )
         clip = clip.resize( scale if scale else size )
         if speed:
             clip = clip.speedx( speed )
-        return clip
+        if mirrored:
+            clip = afx.time_symmetrize( clip )
+        clip.write_gif( gif_name, fps=fps )
+        self.emit( QtCore.SIGNAL( 'GIF_making_finished' ), gif_name )
 
     def update_progress( self, progress ):
         """ Send progress signal """
@@ -148,9 +157,7 @@ class GIFMakingThread( QtCore.QThread ):
 
 
 class MagicBox( QtCore.QObject ):
-    """ A magic box which can convert videos into GIF animations. """
-
-    progress_signal = QtCore.pyqtSignal( str )
+    """ A magic box which holds info of GIF and video. """
 
     def __init__( self, **kwargs ):
         super( self.__class__, self ).__init__( **kwargs )
@@ -164,47 +171,6 @@ class MagicBox( QtCore.QObject ):
         self._original_clip = None
         self.info           = Info()
 
-        self.GIF_maker_thread = None
-
-    def make_clip( self ):
-        """ Customize clip according to parameters in self.info """
-        """
-        # Init from video file.
-        self.clip = self.VideoFileClipCls( self.info.video )
-        # Create sub-clip.
-        self.clip = self.clip.subclip( self.info.start, self.info.end )
-        # Resize clip.
-        if self.info.scale:
-            self.clip = self.clip.resize( self.info.scale )
-        else:
-            self.clip = self.clip.resize( self.info.size )
-        # Change play speed.
-        if self.info.speed:
-            self.clip = self.clip.speedx( self.info.speed )
-        """
-        params = { 'video_name': self.info.video,
-                        'start': self.info.start,
-                          'end': self.info.end,
-                        'scale': self.info.scale,
-                         'size': self.info.size,
-                        'speed': self.info.speed, }
-        self.GIF_maker_thread = GIFMakingThread( params )
-        self.connect( self.GIF_maker_thread, QtCore.SIGNAL( 'GIF_making_progress' ), self.update_progress )
-        self.connect( self.GIF_maker_thread, QtCore.SIGNAL( 'GIF_making_finished' ), self.update_clip )
-        self.GIF_maker_thread.run()
-
-    def save_gif( self, name ):
-        """ Write VideoClip to a GIF file. """
-        if self.info.mirrored:
-            self.clip = self.afx.time_symmetrize( self.clip )
-        self.clip.write_gif( name, fps=self.info.fps )
-
-    def update_clip( self, clip ):
-        self.clip = clip
-
-    def update_progress( self, progress ):
-        self.progress_signal.emit( progress )
-
 
 class MagicBoxGui( QtGui.QMainWindow ):
     """ GUI for MagicBox. """
@@ -216,7 +182,7 @@ class MagicBoxGui( QtGui.QMainWindow ):
         self.VideoFileClipCls = VideoFileClip
 
         # MagicBox() does all editing / writing things.
-        self.magic_box      = MagicBox( progress_signal=self.update_status_bar_gif_progress )
+        self.magic_box      = MagicBox()
         # CentralWidget draw by QT Designer.
         self.central_widget = MagicBoxCentralWidget()
         # GIF to be loaded in the player.
@@ -227,6 +193,10 @@ class MagicBoxGui( QtGui.QMainWindow ):
         self.last_gif_dir   = QtCore.QString()
         # Set window icon.
         self.setWindowIcon( QtGui.QIcon( ':/images/logo_tray.png' ) )
+
+        self.thread = GIFMakingThread()
+        self.connect( self.thread, QtCore.SIGNAL( 'GIF_making_progress' ), self.update_status_bar_gif_progress )
+        self.connect( self.thread, QtCore.SIGNAL( 'GIF_making_finished' ), self.gif_making_finished )
 
         self.init_ui( )
 
@@ -405,15 +375,39 @@ class MagicBoxGui( QtGui.QMainWindow ):
                 # Close opened gif.
                 self.loaded_gif.setFileName( QtCore.QString() )
 
-            self.magic_box.make_clip()
-            gif_name = QtGui.QFileDialog.getSaveFileName( self, 'Save GIF File',
-                                                          self.last_gif_dir, "GIF (*.gif)" )
+            gif_name = QtGui.QFileDialog.getSaveFileName( self, 'Save GIF File', self.last_gif_dir, "GIF (*.gif)" )
 
             if gif_name:
                 self.last_gif_dir = QtCore.QString( os.path.dirname( unicode( gif_name ) ) )
-                self.magic_box.save_gif( unicode( gif_name ) )
-                # Open GIF file after saved.
-                self.load_gif( unicode( gif_name ) )
+
+                self.central_widget.generate_btn.setText( 'Cancel' )
+                self.central_widget.generate_btn.clicked.disconnect( self.generate_gif )
+                self.central_widget.generate_btn.clicked.connect( self.terminate_gif_making )
+
+                params = { 'video_name': self.magic_box.info.video,
+                           'start'     : self.magic_box.info.start,
+                           'end'       : self.magic_box.info.end,
+                           'scale'     : self.magic_box.info.scale,
+                           'size'      : self.magic_box.info.size,
+                           'speed'     : self.magic_box.info.speed,
+                           'fps'       : self.magic_box.info.fps,
+                           'mirrored'  : self.magic_box.info.mirrored,
+                           'gif_name'  : unicode( gif_name ), }
+                self.thread.set_params( params )
+                self.thread.start()
+
+    def terminate_gif_making( self ):
+        self.thread.terminate()
+        self.statusBar().showMessage( 'Terminated' )
+        self.central_widget.generate_btn.setText( 'Generate GIF' )
+        self.central_widget.generate_btn.clicked.disconnect( self.terminate_gif_making )
+        self.central_widget.generate_btn.clicked.connect( self.generate_gif )
+
+    def gif_making_finished( self, gif_name ):
+        self.central_widget.generate_btn.setText( 'Generate GIF' )
+        self.central_widget.generate_btn.clicked.disconnect( self.terminate_gif_making )
+        self.central_widget.generate_btn.clicked.connect( self.generate_gif )
+        self.load_gif( gif_name )
 
     def load_gif( self, gif_name ):
         """
